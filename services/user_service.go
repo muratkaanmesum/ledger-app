@@ -63,21 +63,13 @@ func Send(senderId int, receiverId int, amount int) error {
 	newSenderBalance := senderBalance - amount
 	newReceiverBalance := receiverBalance + amount
 
-	senderTransaction := models.Transaction{
-		UserID: uint(senderId),
-		Amount: -float64(amount),
-		Type:   "debit",
-	}
-	receiverTransaction := models.Transaction{
-		UserID: uint(receiverId),
-		Amount: float64(amount),
-		Type:   "credit",
-	}
+	transactionService := NewTransactionService()
 
-	if err := db.DB.Create(&senderTransaction).Error; err != nil {
+	if err := transactionService.CreateTransaction(senderId, -float64(amount), "debit"); err != nil {
 		return fmt.Errorf("failed to create sender transaction: %w", err)
 	}
-	if err := db.DB.Create(&receiverTransaction).Error; err != nil {
+
+	if err := transactionService.CreateTransaction(receiverId, float64(amount), "credit"); err != nil {
 		return fmt.Errorf("failed to create receiver transaction: %w", err)
 	}
 

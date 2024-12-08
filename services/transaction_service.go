@@ -1,16 +1,29 @@
 package services
 
 import (
+	"fmt"
 	"ptm/db"
 	"ptm/models"
 )
 
-func CreateTransaction(userID uint, amount float64, txType string) (*models.Transaction, error) {
-	transaction := &models.Transaction{UserID: userID, Amount: amount, Type: txType}
-	if err := db.DB.Create(transaction).Error; err != nil {
-		return nil, err
+type TransactionService struct{}
+
+func NewTransactionService() *TransactionService {
+	return &TransactionService{}
+}
+
+func (t *TransactionService) CreateTransaction(userID int, amount float64, transactionType string) error {
+	transaction := models.Transaction{
+		UserID: uint(userID),
+		Amount: amount,
+		Type:   transactionType,
 	}
-	return transaction, nil
+
+	if err := db.DB.Create(&transaction).Error; err != nil {
+		return fmt.Errorf("failed to create transaction: %w", err)
+	}
+
+	return nil
 }
 
 func ListTransactions(userID uint) ([]models.Transaction, error) {
