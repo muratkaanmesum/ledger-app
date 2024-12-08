@@ -12,17 +12,16 @@ import (
 var DB *gorm.DB
 
 func InitDB() {
-	dsn := os.Getenv("DATABASE_URL")
 	var err error
-
+	var dsn = os.Getenv("DATABASE_URL")
 	DB, err = gorm.Open(postgres.Open(dsn), &gorm.Config{})
 	if err != nil {
 		log.Fatalf("Failed to connect to the database: %v", err)
 	}
 
-	if err := DB.AutoMigrate(&models.User{}); err != nil {
-		log.Fatalf("Failed to run migrations: %v", err)
+	if err := DB.AutoMigrate(&models.User{}, &models.Transaction{}); err != nil {
+		log.Fatalf("Failed to migrate database: %v", err)
 	}
 
-	log.Println("Connected to the database and migrations completed!")
+	log.Println("Database connected and migrated successfully!")
 }

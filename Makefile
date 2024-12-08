@@ -20,57 +20,48 @@ build: ## Build the Go application
 	GOOS=linux GOARCH=amd64 go build -o $(BUILD_FILE) $(MAIN_FILE)
 	@echo "Built $(BUILD_FILE)"
 
-# Run the application locally
 .PHONY: run
-run: build ## Run the application locally
+run: build
 	@echo "Running $(APP_NAME)..."
 	$(BUILD_FILE)
 
-# Clean build artifacts
 .PHONY: clean
 clean: ## Remove build artifacts
 	@rm -rf $(BUILD_DIR)
 	@echo "Cleaned build artifacts"
 
-# Run the application with Docker Compose
 .PHONY: docker-up
-docker-up: ## Start the application with Docker Compose
+docker-up:
 	$(DOCKER_COMPOSE) up --build
 
-# Stop the application with Docker Compose
+
 .PHONY: docker-down
-docker-down: ## Stop the application and remove containers
+docker-down:
 	$(DOCKER_COMPOSE) down --volumes --remove-orphans
 
-# Rebuild and restart Docker containers
 .PHONY: docker-rebuild
-docker-rebuild: ## Rebuild and restart the Docker containers
+docker-rebuild:
 	$(DOCKER_COMPOSE) down --volumes --remove-orphans
 	$(DOCKER_COMPOSE) up --build
 
-# Check the status of Docker services
 .PHONY: docker-ps
-docker-ps: ## Check the status of running Docker containers
+docker-ps:
 	$(DOCKER_COMPOSE) ps
 
-# Access the PostgreSQL database container
 .PHONY: db-shell
-db-shell: ## Access the PostgreSQL container
+db-shell:
 	$(DOCKER_COMPOSE) exec $(DB_CONTAINER) psql -U postgres -d ptmdb
 
-# Access the Redis container
 .PHONY: redis-shell
-redis-shell: ## Access the Redis container
+redis-shell:
 	$(DOCKER_COMPOSE) exec $(REDIS_CONTAINER) redis-cli
 
-# Format the code
 .PHONY: fmt
-fmt: ## Format the code with gofmt
+fmt:
 	@gofmt -s -w .
 
-# Run lint checks
 .PHONY: lint
-lint: ## Run lint checks
+lint:
 	@golangci-lint run
 
 # Show help message

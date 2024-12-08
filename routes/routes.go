@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"ptm/controllers"
 )
 
 func InitRoutes(e *echo.Echo) {
@@ -14,4 +15,5 @@ func InitRoutes(e *echo.Echo) {
 	e.GET("/health", func(c echo.Context) error {
 		return c.JSON(200, map[string]string{"status": "OK"})
 	})
+	e.GET("/user", controllers.GetAllUsers)
 }

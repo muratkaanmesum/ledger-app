@@ -5,6 +5,7 @@ import (
 	"log"
 	"ptm/config"
 	"ptm/db"
+	"ptm/db/redis"
 	"ptm/routes"
 	"ptm/utils"
 
@@ -21,10 +22,12 @@ func main() {
 	}
 
 	db.InitDB()
+	redis.InitRedis()
 
 	e := echo.New()
 
-	routes.InitRoutes(e)
+	db.SeedUsers()
 
+	routes.InitRoutes(e)
 	e.Logger.Fatal(e.Start(":8080"))
 }

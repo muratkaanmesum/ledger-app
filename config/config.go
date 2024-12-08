@@ -15,9 +15,9 @@ type Config struct {
 }
 
 func InitConfig() Config {
-	env := os.Getenv("APP_ENV") // Check if running locally or in Docker
+	env := os.Getenv("APP_ENV")
 	if env == "" {
-		env = "local" // Default to local
+		env = "local"
 	}
 
 	var config Config
