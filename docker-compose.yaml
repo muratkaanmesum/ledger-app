@@ -1,0 +1,36 @@
+version: '3.8'
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: ptm-app
+    ports:
+      - "${APP_PORT}:${APP_PORT}"
+    environment:
+      APP_ENV: docker
+      APP_PORT: ${APP_PORT}
+      DATABASE_URL: ${DOCKER_DATABASE_URL}
+      REDIS_ADDR: ${DOCKER_REDIS_ADDR}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB}
+    depends_on:
+      - db
+      - redis
+
+  db:
+    image: postgres:15
+    container_name: ptm-postgres
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: ptmdb
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:latest
+    container_name: ptm-redis
+    ports:
+      - "6379:6379"
