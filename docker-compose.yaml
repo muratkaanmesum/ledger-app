@@ -7,17 +7,14 @@ services:
       dockerfile: Dockerfile
     container_name: ptm-app
     ports:
-      - "8080:8080"   # Application port
-      - "40000:40000" # Debugging port (only used in debug mode)
-    volumes:
-      - .:/app
+      - "${APP_PORT}:${APP_PORT}"
     environment:
-      - MODE=normal   # Change to "debug" to run Delve
-      - DATABASE_URL=postgres://postgres:postgres@db:5432/ptmdb?sslmode=disable
-      - REDIS_ADDR=redis:6379
-      - REDIS_PASSWORD=
-      - REDIS_DB=0
-      - APP_PORT=8080
+      APP_ENV: docker
+      APP_PORT: ${APP_PORT}
+      DATABASE_URL: ${DOCKER_DATABASE_URL}
+      REDIS_ADDR: ${DOCKER_REDIS_ADDR}
+      REDIS_PASSWORD: ${REDIS_PASSWORD}
+      REDIS_DB: ${REDIS_DB}
     depends_on:
       - db
       - redis
@@ -25,21 +22,15 @@ services:
   db:
     image: postgres:15
     container_name: ptm-postgres
-    ports:
-      - "5432:5432"
     environment:
       POSTGRES_USER: postgres
       POSTGRES_PASSWORD: postgres
       POSTGRES_DB: ptmdb
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
 
   redis:
     image: redis:latest
     container_name: ptm-redis
     ports:
-      - "6378:6378"
-    command: ["redis-server", "--appendonly", "yes"]
-
-volumes:
-  postgres_data:
+      - "6379:6379"

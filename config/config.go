@@ -1,34 +1,51 @@
 package config
 
 import (
+	"fmt"
 	"log"
 	"os"
-
-	"github.com/joho/godotenv"
 )
 
 type Config struct {
-	DatabaseURL string
-	AppPort     string
+	AppPort       string
+	DatabaseURL   string
+	RedisAddr     string
+	RedisPassword string
+	RedisDB       int
 }
 
-var AppConfig Config
-
-func InitConfig() {
-	// Load .env file
-	if err := godotenv.Load(); err != nil {
-		log.Println("No .env file found, falling back to system environment variables.")
+func InitConfig() Config {
+	env := os.Getenv("APP_ENV") // Check if running locally or in Docker
+	if env == "" {
+		env = "local" // Default to local
 	}
 
-	// Set config values
-	AppConfig.DatabaseURL = getEnv("DATABASE_URL", "postgres://default:default@localhost:5432/defaultdb")
-	AppConfig.AppPort = getEnv("APP_PORT", "8080")
+	var config Config
+	config.AppPort = os.Getenv("APP_PORT")
+
+	if env == "docker" {
+		config.DatabaseURL = os.Getenv("DOCKER_DATABASE_URL")
+		config.RedisAddr = os.Getenv("DOCKER_REDIS_ADDR")
+	} else {
+		config.DatabaseURL = os.Getenv("LOCAL_DATABASE_URL")
+		config.RedisAddr = os.Getenv("LOCAL_REDIS_ADDR")
+	}
+
+	config.RedisPassword = os.Getenv("REDIS_PASSWORD")
+	config.RedisDB = getEnvAsInt("REDIS_DB", 0)
+
+	return config
 }
 
-// getEnv gets a key from the environment, or returns a default value.
-func getEnv(key, defaultValue string) string {
+func getEnvAsInt(key string, defaultValue int) int {
 	if value, exists := os.LookupEnv(key); exists {
-		return value
+		var intValue int
+		_, err := fmt.Sscanf(value, "%d", &intValue)
+		if err != nil {
+			log.Printf("Error parsing %s as int: %v\n", key, err)
+			return defaultValue
+		}
+		return intValue
 	}
 	return defaultValue
 }

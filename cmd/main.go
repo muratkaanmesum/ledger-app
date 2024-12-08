@@ -1,6 +1,8 @@
 package main
 
 import (
+	"github.com/joho/godotenv"
+	"log"
 	"ptm/config"
 	"ptm/db"
 	"ptm/routes"
@@ -12,6 +14,11 @@ import (
 func main() {
 	config.InitConfig()
 	utils.InitLogger()
+
+	err := godotenv.Load()
+	if err != nil {
+		log.Println("No .env file found, using environment variables only")
+	}
 
 	db.InitDB()
 
