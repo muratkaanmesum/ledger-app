@@ -25,6 +25,14 @@ func GetAllUsers() ([]models.User, error) {
 	return users, nil
 }
 
+func GetUserById(id int) (*models.User, error) {
+	var user models.User
+	if err := db.DB.First(&user, id).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func Send(senderId int, receiverId int, amount int) error {
 	var (
 		sender   models.User

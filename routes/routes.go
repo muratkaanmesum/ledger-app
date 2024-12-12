@@ -16,4 +16,6 @@ func InitRoutes(e *echo.Echo) {
 		return c.JSON(200, map[string]string{"status": "OK"})
 	})
 	e.GET("/user", controllers.GetAllUsers)
+	e.GET("/user/:userid", controllers.GetUserById)
+	e.POST("/user", controllers.CreateUser)
 }

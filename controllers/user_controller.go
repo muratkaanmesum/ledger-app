@@ -1,17 +1,18 @@
 package controllers
 
 import (
+	"fmt"
 	"net/http"
 	"ptm/services"
 	"ptm/utils/response"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 )
 
 type CreateUserRequest struct {
-	Name  string `json:"name" validate:"required"`
-	Email string `json:"email" validate:"required,email"`
-	Role  string `json:"role"`
+	Name string `json:"name" validate:"required"`
+	Role string `json:"role"`
 }
 
 type TransactionRequest struct {
@@ -59,4 +60,19 @@ func SendToUser(c echo.Context) error {
 		return response.BadRequest(c, "Bad Request", err)
 	}
 	return c.JSON(http.StatusCreated, nil)
+}
+
+func GetUserById(c echo.Context) error {
+	idString := c.Param("id")
+	num, err := strconv.Atoi(idString)
+	if err != nil {
+		fmt.Println("Error converting string to integer:", err)
+		return response.BadRequest(c, "Error converting string to integer", err)
+	}
+	user, err := services.GetUserById(num)
+
+	if err != nil {
+		return response.BadRequest(c, "User not found", err)
+	}
+	return c.JSON(http.StatusOK, user)
 }
