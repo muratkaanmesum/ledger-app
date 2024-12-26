@@ -17,5 +17,5 @@ func InitRoutes(e *echo.Echo) {
 	})
 	e.GET("/user", controllers.GetAllUsers)
 	e.GET("/user/:userid", controllers.GetUserById)
-	e.POST("/user", controllers.CreateUser)
+	e.POST("/auth/register", controllers.RegisterUser)
 }

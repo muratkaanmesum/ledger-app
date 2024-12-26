@@ -3,50 +3,29 @@ package db
 import (
 	"log"
 	"math/rand"
-	"ptm/db/redis"
 	"ptm/models"
 	"ptm/services"
-	"strconv"
 )
 
 func SeedUsers() {
 	users := []models.User{
-		{Name: "John Doe", Role: "admin"},
-		{Name: "Jane Smith", Role: "normal"},
-		{Name: "Alice Johnson", Role: "normal"},
+		{Username: "John Doe", Role: "admin"},
+		{Username: "Jane Smith", Role: "normal"},
+		{Username: "Alice Johnson", Role: "normal"},
 	}
-
-	transactionService := services.NewTransactionService()
 
 	for _, user := range users {
 		var existingUser models.User
-		if err := DB.Where("name = ?", user.Name).First(&existingUser).Error; err == nil {
-			log.Printf("User with name %s already exists. Skipping seed.", user.Name)
+		if err := DB.Where("username = ?", user.Username).First(&existingUser).Error; err == nil {
+			log.Printf("User with username %s already exists. Skipping seed.", user.Username)
 			continue
 		}
 
 		if err := DB.Create(&user).Error; err != nil {
-			log.Printf("Failed to seed user %s: %v", user.Name, err)
+			log.Printf("Failed to seed user %s: %v", user.Username, err)
 			continue
 		}
-
-		userID := int(user.ID)
-		initialBalance := rand.Intn(1000) + 100
-
-		if err := redis.Set(strconv.Itoa(userID), strconv.Itoa(initialBalance), 0); err != nil {
-			log.Printf("Failed to set Redis balance for user %s: %v", user.Name, err)
-		} else {
-			log.Printf("Initialized Redis balance for user %s with balance %d", user.Name, initialBalance)
-		}
-
-		if err := transactionService.CreateTransaction(userID, float64(initialBalance), "deposit"); err != nil {
-			log.Printf("Failed to create initial deposit transaction for user %s: %v", user.Name, err)
-		} else {
-			log.Printf("Created initial deposit transaction for user %s", user.Name)
-		}
 	}
-
-	createSpecificTransactions(users, transactionService)
 }
 
 func createSpecificTransactions(users []models.User, transactionService *services.TransactionService) {
