@@ -3,17 +3,29 @@ package services
 import (
 	"errors"
 	"fmt"
+	"gorm.io/gorm"
 	"ptm/db"
 	"ptm/db/redis"
 	"ptm/models"
 	"strconv"
 )
 
-func CreateUser(name, role string) (*models.User, error) {
-	user := &models.User{Name: name, Role: role}
+func RegisterUser(user *models.User) (*models.User, error) {
+	dbUser := models.User{}
+	if err := db.DB.Where("username = ?", user.Username).First(&dbUser).Error; err == nil {
+		return nil, errors.New("user already exists")
+	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+		return nil, err
+	}
+
+	if err := user.HashPassword(); err != nil {
+		return nil, err
+	}
+
 	if err := db.DB.Create(user).Error; err != nil {
 		return nil, err
 	}
+
 	return user, nil
 }
 
@@ -30,6 +42,7 @@ func GetUserById(id int) (*models.User, error) {
 	if err := db.DB.First(&user, id).Error; err != nil {
 		return nil, err
 	}
+
 	return &user, nil
 }
 
