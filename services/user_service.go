@@ -47,6 +47,14 @@ func GetUserById(id int) (*models.User, error) {
 	return &user, nil
 }
 
+func GetUserByUsername(username string) (*models.User, error) {
+	var user models.User
+	if err := db.DB.Where("username = ?", username).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 func Send(senderId int, receiverId int, amount int) error {
 	var (
 		sender   models.User
