@@ -19,7 +19,7 @@ type TransactionRequest struct {
 func GetAllUsers(c echo.Context) error {
 	users, err := services.GetAllUsers()
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return response.BadRequest(c, "Error getting users", err)
 	}
 	return c.JSON(http.StatusOK, users)
 }

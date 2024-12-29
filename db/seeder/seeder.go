@@ -10,9 +10,9 @@ import (
 
 func SeedUsers() {
 	users := []models.User{
-		{Username: "John Doe", Role: "admin"},
-		{Username: "Jane Smith", Role: "normal"},
-		{Username: "Alice Johnson", Role: "normal"},
+		{Username: "John Doe", Role: "admin", Email: "test@gmail.com"},
+		{Username: "Jane Smith", Role: "user", Email: "test1@gmail.com"},
+		{Username: "Alice Johnson", Role: "user", Email: "test2@gail.com"},
 	}
 
 	for _, user := range users {
@@ -21,8 +21,12 @@ func SeedUsers() {
 			log.Printf("User with username %s already exists. Skipping seed.", user.Username)
 			continue
 		}
-
-		if err := db.DB.Create(&user).Error; err != nil {
+		createdUser, err := models.NewUser(user.Username, user.Email, user.PasswordHash, user.Role)
+		if err != nil {
+			log.Printf("Failed to create user %s: %v", user.Username, err)
+			continue
+		}
+		if err := db.DB.Create(&createdUser).Error; err != nil {
 			log.Printf("Failed to seed user %s: %v", user.Username, err)
 			continue
 		}

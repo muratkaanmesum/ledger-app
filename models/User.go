@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"golang.org/x/crypto/bcrypt"
 	"time"
 )
@@ -33,6 +34,23 @@ func (u *User) HashPassword() error {
 	return nil
 }
 
-func (u *User) Validate() {
+var ValidRoles = map[string]bool{
+	"admin": true,
+	"user":  true,
+}
 
+func NewUser(username, email, password, role string) (*User, error) {
+	if !ValidRoles[role] {
+		return nil, errors.New("user role is not valid")
+	}
+	user := &User{
+		Username:     username,
+		Email:        email,
+		PasswordHash: password,
+		Role:         role,
+	}
+	if err := user.HashPassword(); err != nil {
+		return nil, err
+	}
+	return user, nil
 }
