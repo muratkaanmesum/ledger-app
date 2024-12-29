@@ -27,11 +27,11 @@ type TransactionRequest struct {
 func RegisterUser(c echo.Context) error {
 	var req CreateUserRequest
 	if err := c.Bind(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": "Invalid request body"})
+		return response.BadRequest(c, "Error", err)
 	}
 
 	if err := c.Validate(req); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"error": err.Error()})
+		return response.BadRequest(c, "Validation error", err)
 	}
 
 	user, err := services.RegisterUser(&models.User{
@@ -41,10 +41,10 @@ func RegisterUser(c echo.Context) error {
 		PasswordHash: req.Password,
 	})
 	if err != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"error": err.Error()})
+		return response.BadRequest(c, "Error", err)
 	}
 
-	return c.JSON(http.StatusCreated, user)
+	return response.Ok(c, "User created", user)
 }
 
 func GetAllUsers(c echo.Context) error {

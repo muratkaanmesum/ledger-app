@@ -1,8 +1,9 @@
-package db
+package seeder
 
 import (
 	"log"
 	"math/rand"
+	"ptm/db"
 	"ptm/models"
 	"ptm/services"
 )
@@ -16,12 +17,12 @@ func SeedUsers() {
 
 	for _, user := range users {
 		var existingUser models.User
-		if err := DB.Where("username = ?", user.Username).First(&existingUser).Error; err == nil {
+		if err := db.DB.Where("username = ?", user.Username).First(&existingUser).Error; err == nil {
 			log.Printf("User with username %s already exists. Skipping seed.", user.Username)
 			continue
 		}
 
-		if err := DB.Create(&user).Error; err != nil {
+		if err := db.DB.Create(&user).Error; err != nil {
 			log.Printf("Failed to seed user %s: %v", user.Username, err)
 			continue
 		}

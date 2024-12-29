@@ -6,6 +6,7 @@ import (
 	"ptm/config"
 	"ptm/db"
 	"ptm/db/redis"
+	"ptm/db/seeder"
 	"ptm/routes"
 	"ptm/utils"
 
@@ -26,7 +27,7 @@ func main() {
 
 	e := echo.New()
 
-	db.SeedUsers()
+	seeder.SeedUsers()
 
 	routes.InitRoutes(e)
 	e.Logger.Fatal(e.Start(":8080"))
