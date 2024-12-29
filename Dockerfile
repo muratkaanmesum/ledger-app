@@ -1,23 +1,35 @@
 FROM golang:1.23 AS builder
 
+# Install Air for hot reloading and Delve for debugging
+RUN go install github.com/air-verse/air@v1.61.5
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 WORKDIR /app
 
+# Copy dependency files
 COPY go.mod go.sum ./
 RUN go mod download
 
+# Copy source code
 COPY . .
 
-RUN GOOS=linux GOARCH=amd64 go build -gcflags "all=-N -l" -o /app/main cmd/main.go
+# Build application
+RUN GOOS=linux GOARCH=amd64 go build -o main ./cmd/main.go
 
-FROM debian:bookworm-slim
+FROM golang:1.23 AS runtime
 
-RUN apt-get update && apt-get install -y ca-certificates
+# Install Air for hot reloading
+RUN go install github.com/air-verse/air@v1.61.5
 
+WORKDIR /app
+
+# Copy built application and other required files
 COPY --from=builder /app/main ./main
-COPY --from=builder /go/bin/dlv /usr/local/bin/dlv
+COPY --from=builder /app /app
+COPY --from=builder /go/bin/air /usr/local/bin/air
 
+# Expose ports
 EXPOSE 8080 40000
 
-CMD ["./main"]
+# Use Air for hot reloading
+CMD ["air", "-c", ".air.toml"]

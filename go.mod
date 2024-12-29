@@ -38,3 +38,5 @@ require (
 	golang.org/x/text v0.21.0 // indirect
 	golang.org/x/time v0.5.0 // indirect
 )
+
+replace github.com/cosmtrek/air => github.com/air-verse/air v1.61.5
