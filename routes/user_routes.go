@@ -8,6 +8,7 @@ import (
 func RegisterUserRoutes(e *echo.Echo) {
 	userRoute := e.Group("/user")
 
-	userRoute.GET(":userid", controllers.GetUserById)
-	userRoute.GET("", controllers.GetAllUsers)
+	userRoute.GET("/:id", controllers.GetUserById)
+	userRoute.GET("/users", controllers.GetAllUsers)
+	userRoute.GET("/users", controllers.GetAllUsers)
 }

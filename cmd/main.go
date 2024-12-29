@@ -9,6 +9,7 @@ import (
 	"ptm/db/seeder"
 	"ptm/routes"
 	"ptm/utils"
+	"ptm/utils/validator"
 
 	"github.com/labstack/echo/v4"
 )
@@ -16,7 +17,6 @@ import (
 func main() {
 	config.InitConfig()
 	utils.InitLogger()
-
 	err := godotenv.Load()
 	if err != nil {
 		log.Println("No .env file found, using environment variables only")
@@ -26,7 +26,7 @@ func main() {
 	redis.InitRedis()
 
 	e := echo.New()
-
+	e.Validator = validator.New()
 	seeder.SeedUsers()
 
 	routes.InitRoutes(e)
