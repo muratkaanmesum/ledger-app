@@ -7,10 +7,12 @@ services:
       dockerfile: Dockerfile
     container_name: ptm-app
     ports:
-      - "${APP_PORT}:${APP_PORT}"
+      - "8080:8080"   # Application port
+      - "40000:40000" # Debugging port for Delve
     environment:
+      DEBUG: "true" # Change to "false" for Air mode
       APP_ENV: docker
-      APP_PORT: ${APP_PORT}
+      APP_PORT: 8080
       DATABASE_URL: ${DOCKER_DATABASE_URL}
       REDIS_ADDR: ${DOCKER_REDIS_ADDR}
       REDIS_PASSWORD: ${REDIS_PASSWORD}

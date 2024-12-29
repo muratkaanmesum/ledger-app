@@ -17,10 +17,9 @@ type User struct {
 }
 
 func (u *User) VerifyUser(password string) error {
-	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err == nil {
+	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
 		return err
 	}
-
 	return nil
 }
 

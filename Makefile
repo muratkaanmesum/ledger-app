@@ -34,7 +34,6 @@ clean: ## Remove build artifacts
 docker-up:
 	$(DOCKER_COMPOSE) up --build
 
-
 .PHONY: docker-down
 docker-down:
 	$(DOCKER_COMPOSE) down --volumes --remove-orphans
@@ -64,7 +63,13 @@ fmt:
 lint:
 	@golangci-lint run
 
+.PHONY: debug
+debug:
+	$(DOCKER_COMPOSE) down --volumes --remove-orphans
+	DEBUG=true $(DOCKER_COMPOSE) up --build
+	@echo "Application started in debug mode. Attach your debugger to port 40000."
+
 # Show help message
 .PHONY: help
-help: ## Show this help message
+help:
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-15s\033[0m %s\n", $$1, $$2}'

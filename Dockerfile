@@ -23,13 +23,14 @@ RUN go install github.com/air-verse/air@v1.61.5
 
 WORKDIR /app
 
-# Copy built application and other required files
 COPY --from=builder /app/main ./main
 COPY --from=builder /app /app
 COPY --from=builder /go/bin/air /usr/local/bin/air
+COPY --from=builder /go/bin/dlv /usr/local/bin/dlv
 
-# Expose ports
 EXPOSE 8080 40000
 
-# Use Air for hot reloading
-CMD ["air", "-c", ".air.toml"]
+COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+RUN chmod +x /usr/local/bin/entrypoint.sh
+
+CMD ["entrypoint.sh"]
