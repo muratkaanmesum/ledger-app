@@ -1,13 +1,13 @@
 package models
 
 import (
-	"gorm.io/gorm"
 	"time"
 )
 
 type Balance struct {
-	gorm.Model
-	UserId        uint      `json:"user_id"`
-	Amount        uint      `json:"amount"`
-	LastUpdatedAt time.Time `gorm:"column:updated_at"`
+	UserID        uint    `gorm:"primaryKey"`
+	Amount        float64 `gorm:"default:0.0"`
+	LastUpdatedAt time.Time
+
+	User User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
 }

@@ -1,0 +1,15 @@
+[build]
+bin = "main"
+cmd = "go build -o main ./cmd/main.go"
+dir = "."
+exclude_dir = ["vendor"]
+include_ext = ["go"]
+exclude_ext = ["md"]
+
+[log]
+level = "debug"
+
+[serve]
+cmd = "./main"
+gracefull = true
+bin_delay = 2000
