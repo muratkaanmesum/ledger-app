@@ -14,7 +14,7 @@ func NewTransactionService() *TransactionService {
 
 func (t *TransactionService) CreateTransaction(userID int, amount float64, transactionType string) error {
 	transaction := models.Transaction{
-		UserID: uint(userID),
+		ID:     uint(userID),
 		Amount: amount,
 		Type:   transactionType,
 	}
