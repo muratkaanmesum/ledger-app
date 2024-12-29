@@ -3,7 +3,6 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"ptm/models"
 	"ptm/services"
 	"ptm/utils/response"
 	"strconv"
@@ -11,40 +10,10 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-type CreateUserRequest struct {
-	Username string `json:"username" validate:"required"`
-	Email    string `json:"email" validate:"required,email"`
-	Password string `json:"password" validate:"required"`
-	Role     string `json:"role"`
-}
-
 type TransactionRequest struct {
 	SenderId   int `json:"sender_id" validate:"required"`
 	ReceiverId int `json:"receiver_id" validate:"required"`
 	Amount     int `json:"amount" validate:"required"`
-}
-
-func RegisterUser(c echo.Context) error {
-	var req CreateUserRequest
-	if err := c.Bind(req); err != nil {
-		return response.BadRequest(c, "Error", err)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return response.BadRequest(c, "Validation error", err)
-	}
-
-	user, err := services.RegisterUser(&models.User{
-		Username:     req.Username,
-		Email:        req.Email,
-		Role:         req.Role,
-		PasswordHash: req.Password,
-	})
-	if err != nil {
-		return response.BadRequest(c, "Error", err)
-	}
-
-	return response.Ok(c, "User created", user)
 }
 
 func GetAllUsers(c echo.Context) error {

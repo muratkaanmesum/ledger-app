@@ -3,7 +3,6 @@ package routes
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
-	"ptm/controllers"
 )
 
 func InitRoutes(e *echo.Echo) {
@@ -15,5 +14,5 @@ func InitRoutes(e *echo.Echo) {
 		return c.JSON(200, map[string]string{"status": "OK"})
 	})
 	RegisterUserRoutes(e)
-	e.POST("/auth/register", controllers.RegisterUser)
+	RegisterAuthRoutes(e)
 }

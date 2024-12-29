@@ -1,7 +1,5 @@
-# Build stage
 FROM golang:1.23 AS builder
 
-# Install dependencies
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 WORKDIR /app

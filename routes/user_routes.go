@@ -9,4 +9,5 @@ func RegisterUserRoutes(e *echo.Echo) {
 	userRoute := e.Group("/user")
 
 	userRoute.GET(":userid", controllers.GetUserById)
+	userRoute.GET("", controllers.GetAllUsers)
 }
