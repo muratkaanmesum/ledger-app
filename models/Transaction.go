@@ -18,6 +18,16 @@ type Transaction struct {
 	ToUser   User `gorm:"foreignKey:ToUserID;constraint:OnDelete:CASCADE"`
 }
 
+const (
+	TransactionTypeDebit  = "debit"
+	TransactionTypeCredit = "credit"
+)
+
+const (
+	TransactionStatusPending   = "pending"
+	TransactionStatusCompleted = "completed"
+)
+
 var validTransactionTypes = map[string]bool{"debit": true, "credit": true}
 var validTransactionStatuses = map[string]bool{"pending": true, "completed": true}
 
