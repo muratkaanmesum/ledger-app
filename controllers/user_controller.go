@@ -17,7 +17,9 @@ type TransactionRequest struct {
 }
 
 func GetAllUsers(c echo.Context) error {
-	users, err := services.GetAllUsers()
+	userService := services.NewUserService()
+
+	users, err := userService.GetAllUsers(10, 0)
 	if err != nil {
 		return response.BadRequest(c, "Error getting users", err)
 	}
@@ -25,13 +27,14 @@ func GetAllUsers(c echo.Context) error {
 }
 
 func GetUserById(c echo.Context) error {
+	userService := services.UserService{}
 	idString := c.Param("id")
 	num, err := strconv.Atoi(idString)
 	if err != nil {
 		fmt.Println("Error converting string to integer:", err)
 		return response.BadRequest(c, "Error converting string to integer", err)
 	}
-	user, err := services.GetUserById(num)
+	user, err := userService.GetUserById(num)
 
 	if err != nil {
 		return response.BadRequest(c, "User not found", err)
