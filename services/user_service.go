@@ -3,39 +3,43 @@ package services
 import (
 	"errors"
 	"fmt"
-	"ptm/db"
-
-	"gorm.io/gorm"
 	"ptm/models"
+	"ptm/repositories"
 )
 
 type UserServiceInterface interface {
 	RegisterUser(user *models.User) (*models.User, error)
 	GetAllUsers(limit, offset int) ([]models.User, error)
-	GetUserById(id int) (*models.User, error)
+	GetUserById(id uint) (*models.User, error)
 	GetUserByUsername(username string) (*models.User, error)
 }
 
 type UserService struct {
+	userRepo repositories.UserRepository
 }
 
-func NewUserService() *UserService {
-	return &UserService{}
+func NewUserService(userRepo repositories.UserRepository) *UserService {
+	return &UserService{
+		userRepo: userRepo,
+	}
 }
 
 func (s *UserService) RegisterUser(user *models.User) (*models.User, error) {
-	existingUser := models.User{}
-	if err := db.DB.Where("username = ?", user.Username).First(&existingUser).Error; err == nil {
+	// Check if the user already exists
+	existingUser, err := s.userRepo.GetUserByUsername(user.Username)
+	if err == nil && existingUser != nil {
 		return nil, errors.New("user already exists")
-	} else if !errors.Is(err, gorm.ErrRecordNotFound) {
+	} else if err != nil && err.Error() != "record not found" {
 		return nil, fmt.Errorf("database error: %w", err)
 	}
 
+	// Hash the user's password
 	if err := user.HashPassword(); err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	if err := db.DB.Create(user).Error; err != nil {
+	// Save the user to the database
+	if err := s.userRepo.CreateUser(user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}
 
@@ -43,25 +47,25 @@ func (s *UserService) RegisterUser(user *models.User) (*models.User, error) {
 }
 
 func (s *UserService) GetAllUsers(limit, offset int) ([]models.User, error) {
-	var users []models.User
-	if err := db.DB.Limit(limit).Offset(offset).Find(&users).Error; err != nil {
+	users, err := s.userRepo.GetUsers(limit, offset)
+	if err != nil {
 		return nil, fmt.Errorf("failed to retrieve users: %w", err)
 	}
 	return users, nil
 }
 
-func (s *UserService) GetUserById(id int) (*models.User, error) {
-	var user models.User
-	if err := db.DB.First(&user, id).Error; err != nil {
+func (s *UserService) GetUserById(id uint) (*models.User, error) {
+	user, err := s.userRepo.GetUserByID(id)
+	if err != nil {
 		return nil, fmt.Errorf("user not found with ID %d: %w", id, err)
 	}
-	return &user, nil
+	return user, nil
 }
 
 func (s *UserService) GetUserByUsername(username string) (*models.User, error) {
-	var user models.User
-	if err := db.DB.Where("username = ?", username).First(&user).Error; err != nil {
+	user, err := s.userRepo.GetUserByUsername(username)
+	if err != nil {
 		return nil, fmt.Errorf("user not found with username %s: %w", username, err)
 	}
-	return &user, nil
+	return user, nil
 }

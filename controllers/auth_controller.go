@@ -4,6 +4,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"ptm/models"
+	"ptm/repositories"
 	"ptm/services"
 	"ptm/utils"
 	"ptm/utils/response"
@@ -23,6 +24,7 @@ type AuthenticateUserRequest struct {
 
 func RegisterUser(c echo.Context) error {
 	var req createUserRequest
+	userService := services.NewUserService(repositories.NewUserRepository())
 
 	utils.Logger.Info("Handling RegisterUser request")
 
@@ -38,7 +40,7 @@ func RegisterUser(c echo.Context) error {
 		return response.BadRequest(c, "Validation error", err)
 	}
 
-	user, err := services.RegisterUser(&models.User{
+	user, err := userService.RegisterUser(&models.User{
 		Username:     req.Username,
 		Email:        req.Email,
 		Role:         req.Role,
@@ -56,6 +58,7 @@ func RegisterUser(c echo.Context) error {
 
 func AuthenticateUser(c echo.Context) error {
 	var req AuthenticateUserRequest
+	userService := services.NewUserService(repositories.NewUserRepository())
 
 	if err := c.Bind(&req); err != nil {
 		utils.Logger.Error("Failed to bind request body", zap.Error(err))
@@ -69,7 +72,7 @@ func AuthenticateUser(c echo.Context) error {
 		return response.BadRequest(c, "Validation error", err)
 	}
 
-	user, err := services.GetUserByUsername(req.Username)
+	user, err := userService.GetUserByUsername(req.Username)
 	if err != nil {
 		utils.Logger.Error("Failed to find the user by username", zap.String("username", req.Username), zap.Error(err))
 		return response.BadRequest(c, "Error", err)

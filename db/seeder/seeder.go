@@ -41,37 +41,37 @@ func createSpecificTransactions(users []models.User, transactionService *service
 	}
 
 	for _, sender := range users {
-		senderID := int(sender.ID)
+		senderID := uint(sender.ID)
 
 		depositAmount := float64(rand.Intn(500) + 50)
-		if err := transactionService.CreateTransaction(senderID, depositAmount, "deposit"); err != nil {
+		if err := transactionService.CreateTransaction(senderID, senderID, depositAmount, "deposit"); err != nil {
 			log.Printf("Failed to create deposit transaction for user %d: %v", senderID, err)
 		} else {
 			log.Printf("Created deposit transaction of %.2f for user %d", depositAmount, senderID)
 		}
 
 		withdrawAmount := float64(rand.Intn(200) + 10)
-		if err := transactionService.CreateTransaction(senderID, -withdrawAmount, "withdraw"); err != nil {
+		if err := transactionService.CreateTransaction(senderID, senderID, -withdrawAmount, "withdraw"); err != nil {
 			log.Printf("Failed to create withdraw transaction for user %d: %v", senderID, err)
 		} else {
 			log.Printf("Created withdraw transaction of %.2f for user %d", withdrawAmount, senderID)
 		}
 
 		amount := float64(rand.Intn(200) + 20)
-		receiver := selectRandomUser(users, senderID)
+		receiver := selectRandomUser(users, int(senderID))
 		if receiver == nil {
 			log.Printf("No valid receiver found for send transaction from user %d", senderID)
 			continue
 		}
-		receiverID := int(receiver.ID)
+		receiverID := uint(receiver.ID)
 
-		if err := transactionService.CreateTransaction(senderID, -amount, "send"); err != nil {
+		if err := transactionService.CreateTransaction(senderID, receiverID, -amount, models.TransactionTypeDebit); err != nil {
 			log.Printf("Failed to create send transaction for user %d: %v", senderID, err)
 		} else {
 			log.Printf("Created send transaction of %.2f from user %d to user %d", amount, senderID, receiverID)
 		}
 
-		if err := transactionService.CreateTransaction(receiverID, amount, "receive"); err != nil {
+		if err := transactionService.CreateTransaction(receiverID, senderID, amount, models.TransactionTypeDebit); err != nil {
 			log.Printf("Failed to create receive transaction for user %d: %v", receiverID, err)
 		} else {
 			log.Printf("Created receive transaction of %.2f for user %d from user %d", amount, receiverID, senderID)
