@@ -3,6 +3,7 @@ package controllers
 import (
 	"fmt"
 	"net/http"
+	"ptm/repositories"
 	"ptm/services"
 	"ptm/utils/response"
 	"strconv"
@@ -17,7 +18,7 @@ type TransactionRequest struct {
 }
 
 func GetAllUsers(c echo.Context) error {
-	userService := services.NewUserService()
+	userService := services.NewUserService(repositories.NewUserRepository())
 
 	users, err := userService.GetAllUsers(10, 0)
 	if err != nil {

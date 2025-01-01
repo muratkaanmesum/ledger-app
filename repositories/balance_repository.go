@@ -10,6 +10,11 @@ import (
 	"ptm/models"
 )
 
+var (
+	instance *balanceRepository
+	once     sync.Once
+)
+
 type BalanceRepository interface {
 	GetBalance(userID uint, date *time.Time) (*models.Balance, error)
 	UpdateBalance(userID uint, amount float64) error
@@ -18,7 +23,16 @@ type BalanceRepository interface {
 }
 
 type balanceRepository struct {
-	mu sync.RWMutex
+	mu *sync.RWMutex
+}
+
+func NewBalanceRepository() BalanceRepository {
+	once.Do(func() {
+		instance = &balanceRepository{
+			mu: &sync.RWMutex{},
+		}
+	})
+	return instance
 }
 
 func (r *balanceRepository) GetBalance(userID uint, date *time.Time) (*models.Balance, error) {
