@@ -5,9 +5,14 @@ import (
 	"ptm/models"
 )
 
+type TransactionServiceInterface interface {
+	CreateTransaction(fromId, toId uint, amount float64, transactionType string) error
+	ListTransactions(userID uint) ([]models.Transaction, error)
+}
+
 type TransactionService struct{}
 
-func NewTransactionService() *TransactionService {
+func NewTransactionService() TransactionServiceInterface {
 	return &TransactionService{}
 }
 
@@ -16,14 +21,13 @@ func (t *TransactionService) CreateTransaction(fromId, toId uint, amount float64
 	if err != nil {
 		return err
 	}
-
 	if err := db.DB.Create(&transaction).Error; err != nil {
 		return err
 	}
 	return nil
 }
 
-func ListTransactions(userID uint) ([]models.Transaction, error) {
+func (t *TransactionService) ListTransactions(userID uint) ([]models.Transaction, error) {
 	var transactions []models.Transaction
 	if err := db.DB.Where("user_id = ?", userID).Find(&transactions).Error; err != nil {
 		return nil, err

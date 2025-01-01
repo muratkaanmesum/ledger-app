@@ -4,6 +4,7 @@ import (
 	"errors"
 	"ptm/models"
 	"ptm/repositories"
+	"time"
 )
 
 type BalanceService interface {
@@ -21,7 +22,7 @@ func NewBalanceService(repo repositories.BalanceRepository) BalanceService {
 }
 
 func (s *balanceService) GetUserBalance(userID uint) (*models.Balance, error) {
-	balance, err := s.repo.GetBalance(userID)
+	balance, err := s.repo.GetBalance(userID, nil)
 	if err != nil {
 		return nil, err
 	}
@@ -50,4 +51,13 @@ func (s *balanceService) DecrementUserBalance(userID uint, amount float64) error
 		return errors.New("decrement amount must be greater than zero")
 	}
 	return s.repo.DecrementBalance(userID, amount)
+}
+
+func (s *balanceService) GetBalanceAtTime(userID uint, date *time.Time) (*models.Balance, error) {
+	balance, err := s.repo.GetBalance(userID, date)
+	if err != nil {
+		return nil, err
+	}
+
+	return balance, nil
 }

@@ -11,7 +11,7 @@ import (
 )
 
 type BalanceRepository interface {
-	GetBalance(userID uint) (*models.Balance, error)
+	GetBalance(userID uint, date *time.Time) (*models.Balance, error)
 	UpdateBalance(userID uint, amount float64) error
 	IncrementBalance(userID uint, amount float64) error
 	DecrementBalance(userID uint, amount float64) error
@@ -21,24 +21,33 @@ type balanceRepository struct {
 	mu sync.RWMutex
 }
 
-func (r *balanceRepository) GetBalance(userID uint) (*models.Balance, error) {
+func (r *balanceRepository) GetBalance(userID uint, date *time.Time) (*models.Balance, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	var balance models.Balance
-	err := db.DB.Where("user_id = ?", userID).First(&balance).Error
+	query := db.DB.Where("user_id = ?", userID)
+
+	if date != nil {
+		query = query.Where("last_updated_at <= ?", date).Order("last_updated_at DESC")
+	} else {
+		query = query.Order("last_updated_at DESC")
+	}
+
+	err := query.First(&balance).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil
 		}
 		return nil, err
 	}
+
 	return &balance, nil
 }
 
 func (r *balanceRepository) UpdateBalance(userID uint, amount float64) error {
-	r.mu.Lock()         // Write lock for exclusive access
-	defer r.mu.Unlock() // Unlock after writing
+	r.mu.Lock()
+	defer r.mu.Unlock()
 
 	var balance models.Balance
 	err := db.DB.Transaction(func(tx *gorm.DB) error {
