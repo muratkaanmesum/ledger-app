@@ -35,10 +35,10 @@ func GetUserById(c echo.Context) error {
 		fmt.Println("Error converting string to integer:", err)
 		return response.BadRequest(c, "Error converting string to integer", err)
 	}
-	user, err := userService.GetUserById(num)
+	user, err := userService.GetUserById(uint(num))
 
 	if err != nil {
 		return response.BadRequest(c, "User not found", err)
 	}
-	return c.JSON(http.StatusOK, user)
+	return response.Ok(c, "User Found", user)
 }
