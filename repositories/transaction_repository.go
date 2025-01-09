@@ -27,7 +27,7 @@ func NewTransactionRepository() *TransactionRepository {
 
 func (r *TransactionRepository) StartTransaction() error {
 	if r.tx != nil {
-		return nil // Transaction already started
+		return nil
 	}
 	r.tx = db.DB.Begin()
 	return r.tx.Error
@@ -35,7 +35,7 @@ func (r *TransactionRepository) StartTransaction() error {
 
 func (r *TransactionRepository) CommitTransaction() error {
 	if r.tx == nil {
-		return nil // No transaction to commit
+		return nil
 	}
 	err := r.tx.Commit().Error
 	r.tx = nil
@@ -44,7 +44,7 @@ func (r *TransactionRepository) CommitTransaction() error {
 
 func (r *TransactionRepository) RollbackTransaction() error {
 	if r.tx == nil {
-		return nil // No transaction to rollback
+		return nil
 	}
 	err := r.tx.Rollback().Error
 	r.tx = nil
