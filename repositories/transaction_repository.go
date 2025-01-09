@@ -20,9 +20,9 @@ func NewTransactionRepository() *TransactionRepository {
 	return &TransactionRepository{}
 }
 
-func (r *TransactionRepository) CreateTransaction(tx *gorm.DB, transaction *models.Transaction) error {
-	if tx != nil {
-		return tx.Create(transaction).Error
+func (r *TransactionRepository) CreateTransaction(transaction *models.Transaction) error {
+	if db.DB != nil {
+		return db.DB.Create(transaction).Error
 	}
 	return db.DB.Create(transaction).Error
 }
@@ -43,16 +43,16 @@ func (r *TransactionRepository) GetAllTransactions() ([]models.Transaction, erro
 	return transactions, nil
 }
 
-func (r *TransactionRepository) UpdateTransaction(tx *gorm.DB, transaction *models.Transaction) error {
-	if tx != nil {
-		return tx.Save(transaction).Error
+func (r *TransactionRepository) UpdateTransaction(transaction *models.Transaction) error {
+	if db.DB != nil {
+		return db.DB.Save(transaction).Error
 	}
 	return db.DB.Save(transaction).Error
 }
 
-func (r *TransactionRepository) DeleteTransaction(tx *gorm.DB, id uint) error {
-	if tx != nil {
-		return tx.Delete(&models.Transaction{}, id).Error
+func (r *TransactionRepository) DeleteTransaction(id uint) error {
+	if db.DB != nil {
+		return db.DB.Delete(&models.Transaction{}, id).Error
 	}
 	return db.DB.Delete(&models.Transaction{}, id).Error
 }

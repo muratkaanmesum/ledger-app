@@ -17,6 +17,13 @@ type Transaction struct {
 	FromUser User `gorm:"foreignKey:FromUserID;constraint:OnDelete:CASCADE"`
 	ToUser   User `gorm:"foreignKey:ToUserID;constraint:OnDelete:CASCADE"`
 }
+type TransactionType string
+
+const (
+	Credit   TransactionType = "credit"
+	Debit    TransactionType = "debit"
+	Transfer TransactionType = "transfer"
+)
 
 const (
 	TransactionTypeDebit  = "debit"
@@ -31,8 +38,8 @@ const (
 var validTransactionTypes = map[string]bool{"debit": true, "credit": true}
 var validTransactionStatuses = map[string]bool{"pending": true, "completed": true}
 
-func NewTransaction(fromUserID, toUserID uint, amount float64, txType, status string) (*Transaction, error) {
-	if !validTransactionTypes[txType] {
+func NewTransaction(fromUserID, toUserID uint, amount float64, transactionType TransactionType, status string) (*Transaction, error) {
+	if !validTransactionTypes[string(transactionType)] {
 		return nil, errors.New("invalid transaction type")
 	}
 	if !validTransactionStatuses[status] {
@@ -46,7 +53,7 @@ func NewTransaction(fromUserID, toUserID uint, amount float64, txType, status st
 		FromUserID: fromUserID,
 		ToUserID:   toUserID,
 		Amount:     amount,
-		Type:       txType,
+		Type:       string(transactionType),
 		Status:     status,
 		CreatedAt:  time.Now(),
 	}, nil

@@ -3,10 +3,11 @@ package services
 import (
 	"ptm/db"
 	"ptm/models"
+	"ptm/repositories"
 )
 
 type TransactionServiceInterface interface {
-	CreateTransaction(fromId, toId uint, amount float64, transactionType string) error
+	CreateTransaction(fromId, toId uint, amount float64, transactionType models.TransactionType) (*models.Transaction, error)
 	ListTransactions(userID uint) ([]models.Transaction, error)
 }
 
@@ -16,9 +17,19 @@ func NewTransactionService() TransactionServiceInterface {
 	return &TransactionService{}
 }
 
-func (t *TransactionService) CreateTransaction(fromId, toId uint, amount float64, transactionType string) error {
-	transactionService := NewTransactionService()
-	return transactionService.CreateTransaction(fromId, toId, amount, transactionType)
+func (t *TransactionService) CreateTransaction(fromId, toId uint, amount float64, transactionType models.TransactionType) (*models.Transaction, error) {
+	transactionRepository := repositories.NewTransactionRepository()
+
+	toTransaction, err := models.NewTransaction(fromId, toId, amount, transactionType, models.TransactionStatusPending)
+	if err != nil {
+		return nil, err
+	}
+
+	if err := transactionRepository.CreateTransaction(toTransaction); err != nil {
+		return nil, err
+	}
+
+	return toTransaction, nil
 }
 
 func (t *TransactionService) ListTransactions(userID uint) ([]models.Transaction, error) {
