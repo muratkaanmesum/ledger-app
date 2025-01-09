@@ -17,14 +17,8 @@ func NewTransactionService() TransactionServiceInterface {
 }
 
 func (t *TransactionService) CreateTransaction(fromId, toId uint, amount float64, transactionType string) error {
-	transaction, err := models.NewTransaction(fromId, toId, amount, transactionType, models.TransactionStatusPending)
-	if err != nil {
-		return err
-	}
-	if err := db.DB.Create(&transaction).Error; err != nil {
-		return err
-	}
-	return nil
+	transactionService := NewTransactionService()
+	return transactionService.CreateTransaction(fromId, toId, amount, transactionType)
 }
 
 func (t *TransactionService) ListTransactions(userID uint) ([]models.Transaction, error) {

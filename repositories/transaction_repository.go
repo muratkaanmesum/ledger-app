@@ -9,9 +9,6 @@ import (
 type TransactionRepository struct{}
 
 type ITransactionRepository interface {
-	StartTransaction() (*gorm.DB, error)
-	CommitTransaction(tx *gorm.DB) error
-	RollbackTransaction(tx *gorm.DB) error
 	CreateTransaction(tx *gorm.DB, transaction *models.Transaction) error
 	GetTransactionByID(id uint) (*models.Transaction, error)
 	GetAllTransactions() ([]models.Transaction, error)
@@ -21,28 +18,6 @@ type ITransactionRepository interface {
 
 func NewTransactionRepository() *TransactionRepository {
 	return &TransactionRepository{}
-}
-
-func (r *TransactionRepository) StartTransaction() (*gorm.DB, error) {
-	tx := db.DB.Begin()
-	if tx.Error != nil {
-		return nil, tx.Error
-	}
-	return tx, nil
-}
-
-func (r *TransactionRepository) CommitTransaction(tx *gorm.DB) error {
-	if tx == nil {
-		return nil
-	}
-	return tx.Commit().Error
-}
-
-func (r *TransactionRepository) RollbackTransaction(tx *gorm.DB) error {
-	if tx == nil {
-		return nil
-	}
-	return tx.Rollback().Error
 }
 
 func (r *TransactionRepository) CreateTransaction(tx *gorm.DB, transaction *models.Transaction) error {
