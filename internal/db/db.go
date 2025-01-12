@@ -5,7 +5,7 @@ import (
 	"gorm.io/gorm"
 	"log"
 	"os"
-	models2 "ptm/internal/models"
+	"ptm/internal/models"
 )
 
 var DB *gorm.DB
@@ -19,10 +19,10 @@ func InitDB() {
 	}
 
 	if err := DB.AutoMigrate(
-		&models2.User{},
-		&models2.Transaction{},
-		&models2.Balance{},
-		&models2.AuditLog{},
+		&models.User{},
+		&models.Transaction{},
+		&models.Balance{},
+		&models.AuditLog{},
 	); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}

@@ -1,24 +1,32 @@
 package middlewares
 
 import (
-	"net/http"
+	"ptm/internal/utils/jwt"
+	"ptm/internal/utils/response"
 
 	"github.com/labstack/echo/v4"
 )
 
-func RoleBasedAuthorization(requiredRole string) echo.MiddlewareFunc {
+func RoleBasedAuthorization(requiredRoles []string) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			userRole := c.Get("role")
-			if userRole == nil {
-				return c.JSON(http.StatusForbidden, map[string]string{"error": "Access denied"})
+			authHeader := c.Request().Header.Get("Authorization")
+			claims, err := jwt.ValidateJWT(authHeader)
+
+			if err != nil {
+				return response.Forbidden(c, "Forbidden Source", err)
+			}
+			if authHeader == "" {
+				return response.Forbidden(c, "Forbidden Source", nil)
 			}
 
-			if userRole != requiredRole {
-				return c.JSON(http.StatusForbidden, map[string]string{"error": "You do not have the required permissions"})
+			for _, role := range requiredRoles {
+				if claims.Role == role {
+					return next(c)
+				}
 			}
 
-			return next(c)
+			return response.Forbidden(c, "Not Authorized", nil)
 		}
 	}
 }

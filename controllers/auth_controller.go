@@ -91,7 +91,7 @@ func AuthenticateUser(c echo.Context) error {
 	}
 
 	return response.Ok(c, "User authenticated", map[string]interface{}{
-		"token": token,
-		"user":  user,
+		"access_token": token,
+		"user":         user,
 	})
 }

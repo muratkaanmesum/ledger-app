@@ -4,24 +4,31 @@ import (
 	"log"
 	"math/rand"
 	"ptm/internal/db"
-	models2 "ptm/internal/models"
+	"ptm/internal/models"
 	"ptm/internal/services"
 )
 
+type userSeedData struct {
+	Username string
+	Role     string
+	Email    string
+	Password string
+}
+
 func SeedUsers() {
-	users := []models2.User{
-		{Username: "John Doe", Role: "admin", Email: "test@gmail.com"},
-		{Username: "Jane Smith", Role: "user", Email: "test1@gmail.com"},
-		{Username: "Alice Johnson", Role: "user", Email: "test2@gail.com"},
+	users := []userSeedData{
+		{Username: "John Doe", Role: "admin", Email: "test@gmail.com", Password: "123"},
+		{Username: "Jane Smith", Role: "user", Email: "test1@gmail.com", Password: "asd"},
+		{Username: "Alice Johnson", Role: "user", Email: "test2@gail.com", Password: "zxc"},
 	}
 
 	for _, user := range users {
-		var existingUser models2.User
+		var existingUser models.User
 		if err := db.DB.Where("username = ?", user.Username).First(&existingUser).Error; err == nil {
 			log.Printf("User with username %s already exists. Skipping seed.", user.Username)
 			continue
 		}
-		createdUser, err := models2.NewUser(user.Username, user.Email, user.PasswordHash, user.Role)
+		createdUser, err := models.NewUser(user.Username, user.Email, user.Password, user.Role)
 		if err != nil {
 			log.Printf("Failed to create user %s: %v", user.Username, err)
 			continue
@@ -33,7 +40,7 @@ func SeedUsers() {
 	}
 }
 
-func createSpecificTransactions(users []models2.User, transactionService *services.TransactionService) {
+func createSpecificTransactions(users []models.User, transactionService *services.TransactionService) {
 	userCount := len(users)
 	if userCount < 2 {
 		log.Println("Not enough users to create send/receive transactions")
@@ -65,13 +72,13 @@ func createSpecificTransactions(users []models2.User, transactionService *servic
 		}
 		receiverID := uint(receiver.ID)
 
-		if _, err := transactionService.CreateTransaction(senderID, receiverID, -amount, models2.TransactionTypeDebit); err != nil {
+		if _, err := transactionService.CreateTransaction(senderID, receiverID, -amount, models.TransactionTypeDebit); err != nil {
 			log.Printf("Failed to create send transaction for user %d: %v", senderID, err)
 		} else {
 			log.Printf("Created send transaction of %.2f from user %d to user %d", amount, senderID, receiverID)
 		}
 
-		if _, err := transactionService.CreateTransaction(receiverID, senderID, amount, models2.TransactionTypeDebit); err != nil {
+		if _, err := transactionService.CreateTransaction(receiverID, senderID, amount, models.TransactionTypeDebit); err != nil {
 			log.Printf("Failed to create receive transaction for user %d: %v", receiverID, err)
 		} else {
 			log.Printf("Created receive transaction of %.2f for user %d from user %d", amount, receiverID, senderID)
@@ -79,8 +86,8 @@ func createSpecificTransactions(users []models2.User, transactionService *servic
 	}
 }
 
-func selectRandomUser(users []models2.User, excludeID int) *models2.User {
-	var validUsers []models2.User
+func selectRandomUser(users []models.User, excludeID int) *models.User {
+	var validUsers []models.User
 	for _, user := range users {
 		if int(user.ID) != excludeID {
 			validUsers = append(validUsers, user)

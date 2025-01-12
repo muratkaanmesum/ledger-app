@@ -54,6 +54,14 @@ func Custom(c echo.Context, status int, message string, data any, err error) err
 	})
 }
 
+func Forbidden(c echo.Context, message string, err error) error {
+	return c.JSON(http.StatusForbidden, Response{
+		Status:  http.StatusForbidden,
+		Message: message,
+		Error:   formatError(err),
+	})
+}
+
 func formatError(err error) any {
 	if err == nil {
 		return nil
