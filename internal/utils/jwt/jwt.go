@@ -33,6 +33,11 @@ func GenerateJWT(username, role string) (string, error) {
 
 func ValidateJWT(tokenString string) (*CustomClaims, error) {
 	secret := os.Getenv("JWT_SECRET")
+
+	if len(tokenString) > 7 && tokenString[:7] == "Bearer " {
+		tokenString = tokenString[7:]
+	}
+
 	if secret == "" {
 		return nil, errors.New("JWT_SECRET is not set in environment variables")
 	}
