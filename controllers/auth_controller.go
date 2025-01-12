@@ -3,11 +3,11 @@ package controllers
 import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
-	"ptm/models"
-	"ptm/repositories"
-	"ptm/services"
-	"ptm/utils"
-	"ptm/utils/response"
+	"ptm/internal/models"
+	"ptm/internal/repositories"
+	"ptm/internal/services"
+	"ptm/internal/utils"
+	"ptm/internal/utils/response"
 )
 
 type createUserRequest struct {

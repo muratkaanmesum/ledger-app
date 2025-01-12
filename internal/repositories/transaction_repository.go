@@ -2,8 +2,8 @@ package repositories
 
 import (
 	"gorm.io/gorm"
-	"ptm/db" // Assuming this package contains your global DB instance
-	"ptm/models"
+	"ptm/internal/db"
+	"ptm/internal/models"
 )
 
 type TransactionRepository struct{}

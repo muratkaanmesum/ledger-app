@@ -3,8 +3,8 @@ package services
 import (
 	"errors"
 	"fmt"
-	"ptm/models"
-	"ptm/repositories"
+	"ptm/internal/models"
+	"ptm/internal/repositories"
 )
 
 type UserServiceInterface interface {

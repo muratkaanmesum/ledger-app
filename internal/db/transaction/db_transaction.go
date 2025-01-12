@@ -2,7 +2,7 @@ package transaction
 
 import (
 	"gorm.io/gorm"
-	"ptm/db"
+	"ptm/internal/db"
 )
 
 func StartTransaction() (*gorm.DB, error) {

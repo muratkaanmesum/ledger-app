@@ -2,12 +2,12 @@ package repositories
 
 import (
 	"errors"
+	"ptm/internal/db"
+	"ptm/internal/models"
 	"sync"
 	"time"
 
 	"gorm.io/gorm"
-	"ptm/db"
-	"ptm/models"
 )
 
 var (

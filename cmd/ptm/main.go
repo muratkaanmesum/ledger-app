@@ -2,16 +2,15 @@ package main
 
 import (
 	"github.com/joho/godotenv"
-	"log"
-	"ptm/config"
-	"ptm/db"
-	"ptm/db/redis"
-	"ptm/db/seeder"
-	"ptm/routes"
-	"ptm/utils"
-	"ptm/utils/validator"
-
 	"github.com/labstack/echo/v4"
+	"log"
+	"ptm/configs"
+	"ptm/internal/db"
+	"ptm/internal/db/redis"
+	"ptm/internal/db/seeder"
+	"ptm/internal/routes"
+	"ptm/internal/utils"
+	"ptm/internal/utils/validator"
 )
 
 func main() {

@@ -1,7 +1,7 @@
 package controllers
 
 import (
-	"ptm/repositories"
+	"ptm/internal/repositories"
 )
 
 type BalanceController struct {

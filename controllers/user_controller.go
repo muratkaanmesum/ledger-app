@@ -3,9 +3,9 @@ package controllers
 import (
 	"fmt"
 	"net/http"
-	"ptm/repositories"
-	"ptm/services"
-	"ptm/utils/response"
+	"ptm/internal/repositories"
+	"ptm/internal/services"
+	"ptm/internal/utils/response"
 	"strconv"
 
 	"github.com/labstack/echo/v4"

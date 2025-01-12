@@ -2,8 +2,8 @@ package services
 
 import (
 	"errors"
-	"ptm/models"
-	"ptm/repositories"
+	"ptm/internal/models"
+	"ptm/internal/repositories"
 	"time"
 )
 

@@ -1,12 +1,11 @@
 package db
 
 import (
-	"log"
-	"os"
-	"ptm/models"
-
 	"gorm.io/driver/postgres"
 	"gorm.io/gorm"
+	"log"
+	"os"
+	models2 "ptm/internal/models"
 )
 
 var DB *gorm.DB
@@ -20,10 +19,10 @@ func InitDB() {
 	}
 
 	if err := DB.AutoMigrate(
-		&models.User{},
-		&models.Transaction{},
-		&models.Balance{},
-		&models.AuditLog{},
+		&models2.User{},
+		&models2.Transaction{},
+		&models2.Balance{},
+		&models2.AuditLog{},
 	); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}

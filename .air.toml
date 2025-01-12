@@ -1,6 +1,6 @@
 [build]
 bin = "main"
-cmd = "go build -o main ./cmd/main.go"
+cmd = "go build -o main ./cmd/ptm/main.go"
 dir = "."
 exclude_dir = ["vendor"]
 include_ext = ["go"]

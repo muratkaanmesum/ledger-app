@@ -1,8 +1,8 @@
 package repositories
 
 import (
-	"ptm/db"
-	"ptm/models"
+	"ptm/internal/db"
+	"ptm/internal/models"
 )
 
 type UserRepository interface {

@@ -14,7 +14,7 @@ RUN go mod download
 COPY . .
 
 # Build application
-RUN GOOS=linux GOARCH=amd64 go build -o main ./cmd/main.go
+RUN GOOS=linux GOARCH=amd64 go build -o main ./cmd/ptm/main.go
 
 FROM golang:1.23 AS runtime
 
@@ -30,7 +30,7 @@ COPY --from=builder /go/bin/dlv /usr/local/bin/dlv
 
 EXPOSE 8080 40000
 
-COPY entrypoint.sh /usr/local/bin/entrypoint.sh
+COPY configs/entrypoint.sh /usr/local/bin/entrypoint.sh
 RUN chmod +x /usr/local/bin/entrypoint.sh
 
 CMD ["entrypoint.sh"]

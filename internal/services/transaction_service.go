@@ -1,9 +1,9 @@
 package services
 
 import (
-	"ptm/db"
-	"ptm/models"
-	"ptm/repositories"
+	"ptm/internal/db"
+	"ptm/internal/models"
+	"ptm/internal/repositories"
 )
 
 type TransactionServiceInterface interface {
