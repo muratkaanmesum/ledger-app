@@ -25,20 +25,18 @@ func NewUserService(userRepo repositories.UserRepository) *UserService {
 }
 
 func (s *UserService) RegisterUser(user *models.User) (*models.User, error) {
-	// Check if the user already exists
 	existingUser, err := s.userRepo.GetUserByUsername(user.Username)
+
 	if err == nil && existingUser != nil {
 		return nil, errors.New("user already exists")
 	} else if err != nil && err.Error() != "record not found" {
 		return nil, fmt.Errorf("database error: %w", err)
 	}
 
-	// Hash the user's password
 	if err := user.HashPassword(); err != nil {
 		return nil, fmt.Errorf("failed to hash password: %w", err)
 	}
 
-	// Save the user to the database
 	if err := s.userRepo.CreateUser(user); err != nil {
 		return nil, fmt.Errorf("failed to create user: %w", err)
 	}

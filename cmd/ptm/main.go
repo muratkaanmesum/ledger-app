@@ -9,14 +9,17 @@ import (
 	"ptm/internal/db/redis"
 	"ptm/internal/db/seeder"
 	"ptm/internal/routes"
-	"ptm/internal/utils"
+	"ptm/internal/utils/logger"
 	"ptm/internal/utils/validator"
 )
 
 func main() {
 	config.InitConfig()
-	utils.InitLogger()
-	err := godotenv.Load()
+	err := logger.InitLogger()
+	if err != nil {
+		return
+	}
+	err = godotenv.Load()
 	if err != nil {
 		log.Println("No .env file found, using environment variables only")
 	}

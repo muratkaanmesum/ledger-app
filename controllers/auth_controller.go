@@ -6,7 +6,8 @@ import (
 	"ptm/internal/models"
 	"ptm/internal/repositories"
 	"ptm/internal/services"
-	"ptm/internal/utils"
+	"ptm/internal/utils/jwt"
+	"ptm/internal/utils/logger"
 	"ptm/internal/utils/response"
 )
 
@@ -26,17 +27,17 @@ func RegisterUser(c echo.Context) error {
 	var req createUserRequest
 	userService := services.NewUserService(repositories.NewUserRepository())
 
-	utils.Logger.Info("Handling RegisterUser request")
+	logger.Logger.Info("Handling RegisterUser request")
 
 	if err := c.Bind(&req); err != nil {
-		utils.Logger.Error("Failed to bind request body", zap.Error(err))
+		logger.Logger.Error("Failed to bind request body", zap.Error(err))
 		return response.BadRequest(c, "Error", err)
 	}
 
-	utils.Logger.Debug("Request body parsed successfully", zap.String("username", req.Username), zap.String("email", req.Email))
+	logger.Logger.Debug("Request body parsed successfully", zap.String("username", req.Username), zap.String("email", req.Email))
 
 	if err := c.Validate(req); err != nil {
-		utils.Logger.Warn("Validation failed", zap.Error(err))
+		logger.Logger.Warn("Validation failed", zap.Error(err))
 		return response.BadRequest(c, "Validation error", err)
 	}
 
@@ -47,11 +48,11 @@ func RegisterUser(c echo.Context) error {
 		PasswordHash: req.Password,
 	})
 	if err != nil {
-		utils.Logger.Error("Failed to register user", zap.String("username", req.Username), zap.Error(err))
+		logger.Logger.Error("Failed to register user", zap.String("username", req.Username), zap.Error(err))
 		return response.BadRequest(c, "Error", err)
 	}
 
-	utils.Logger.Info("User registered successfully", zap.String("username", req.Username), zap.String("email", req.Email))
+	logger.Logger.Info("User registered successfully", zap.String("username", req.Username), zap.String("email", req.Email))
 
 	return response.Ok(c, "User created", user)
 }
@@ -61,27 +62,36 @@ func AuthenticateUser(c echo.Context) error {
 	userService := services.NewUserService(repositories.NewUserRepository())
 
 	if err := c.Bind(&req); err != nil {
-		utils.Logger.Error("Failed to bind request body", zap.Error(err))
+		logger.Logger.Error("Failed to bind request body", zap.Error(err))
 		return response.BadRequest(c, "Error", err)
 	}
 
-	utils.Logger.Debug("Request body parsed successfully", zap.String("username", req.Username))
+	logger.Logger.Debug("Request body parsed successfully", zap.String("username", req.Username))
 
 	if err := c.Validate(req); err != nil {
-		utils.Logger.Warn("Validation failed", zap.Error(err))
+		logger.Logger.Warn("Validation failed", zap.Error(err))
 		return response.BadRequest(c, "Validation error", err)
 	}
 
 	user, err := userService.GetUserByUsername(req.Username)
 	if err != nil {
-		utils.Logger.Error("Failed to find the user by username", zap.String("username", req.Username), zap.Error(err))
+		logger.Logger.Error("Failed to find the user by username", zap.String("username", req.Username), zap.Error(err))
 		return response.BadRequest(c, "Error", err)
 	}
 
 	if err := user.VerifyUser(req.Password); err != nil {
-		utils.Logger.Error("Failed to verify user", zap.String("username", req.Username), zap.Error(err))
+		logger.Logger.Error("Failed to verify user", zap.String("username", req.Username), zap.Error(err))
 		return response.BadRequest(c, "Authentication Error", err)
 	}
+	token, err := jwt.GenerateJWT(user.Username, user.Role)
 
-	return response.Ok(c, "User authenticated", user)
+	if err != nil {
+		logger.Logger.Error("Failed to generate token", zap.String("username", req.Username), zap.Error(err))
+		return response.InternalServerError(c, "Internal Server Error", err)
+	}
+
+	return response.Ok(c, "User authenticated", map[string]interface{}{
+		"token": token,
+		"user":  user,
+	})
 }
