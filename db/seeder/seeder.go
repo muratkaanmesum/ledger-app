@@ -44,14 +44,14 @@ func createSpecificTransactions(users []models.User, transactionService *service
 		senderID := uint(sender.ID)
 
 		depositAmount := float64(rand.Intn(500) + 50)
-		if err := transactionService.CreateTransaction(senderID, senderID, depositAmount, "deposit"); err != nil {
+		if _, err := transactionService.CreateTransaction(senderID, senderID, depositAmount, "deposit"); err != nil {
 			log.Printf("Failed to create deposit transaction for user %d: %v", senderID, err)
 		} else {
 			log.Printf("Created deposit transaction of %.2f for user %d", depositAmount, senderID)
 		}
 
 		withdrawAmount := float64(rand.Intn(200) + 10)
-		if err := transactionService.CreateTransaction(senderID, senderID, -withdrawAmount, "withdraw"); err != nil {
+		if _, err := transactionService.CreateTransaction(senderID, senderID, -withdrawAmount, "withdraw"); err != nil {
 			log.Printf("Failed to create withdraw transaction for user %d: %v", senderID, err)
 		} else {
 			log.Printf("Created withdraw transaction of %.2f for user %d", withdrawAmount, senderID)
@@ -65,13 +65,13 @@ func createSpecificTransactions(users []models.User, transactionService *service
 		}
 		receiverID := uint(receiver.ID)
 
-		if err := transactionService.CreateTransaction(senderID, receiverID, -amount, models.TransactionTypeDebit); err != nil {
+		if _, err := transactionService.CreateTransaction(senderID, receiverID, -amount, models.TransactionTypeDebit); err != nil {
 			log.Printf("Failed to create send transaction for user %d: %v", senderID, err)
 		} else {
 			log.Printf("Created send transaction of %.2f from user %d to user %d", amount, senderID, receiverID)
 		}
 
-		if err := transactionService.CreateTransaction(receiverID, senderID, amount, models.TransactionTypeDebit); err != nil {
+		if _, err := transactionService.CreateTransaction(receiverID, senderID, amount, models.TransactionTypeDebit); err != nil {
 			log.Printf("Failed to create receive transaction for user %d: %v", receiverID, err)
 		} else {
 			log.Printf("Created receive transaction of %.2f for user %d from user %d", amount, receiverID, senderID)
