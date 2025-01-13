@@ -1,7 +1,6 @@
 package middlewares
 
 import (
-	"net/http"
 	"ptm/internal/utils/jwt"
 	"ptm/internal/utils/response"
 	"strings"
@@ -28,28 +27,37 @@ func RoleBasedAuthorization(requiredRoles []string) echo.MiddlewareFunc {
 	}
 }
 
-func JWTAuthenticate(next echo.HandlerFunc) echo.HandlerFunc {
-	return func(c echo.Context) error {
-		authHeader := c.Request().Header.Get("Authorization")
-		if authHeader == "" {
-			return response.Forbidden(c, "Token doesnt exist", nil)
+func JWTAuthenticate() echo.MiddlewareFunc {
+	return func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+			publicRoutes := map[string]bool{
+				"/health":        true,
+				"/auth/login":    true,
+				"/auth/register": true,
+			}
+
+			if publicRoutes[c.Path()] {
+				return next(c)
+			}
+			authHeader := c.Request().Header.Get("Authorization")
+			if authHeader == "" {
+				return response.Forbidden(c, "Token doesn't exist", nil)
+			}
+
+			if !strings.HasPrefix(authHeader, "Bearer ") {
+				return response.Forbidden(c, "Token is invalid", nil)
+			}
+
+			tokenString := strings.TrimPrefix(authHeader, "Bearer ")
+
+			claims, err := jwt.ValidateJWT(tokenString)
+			if err != nil {
+				return response.Forbidden(c, "Token is invalid", nil)
+			}
+
+			c.Set("user", claims)
+
+			return next(c)
 		}
-
-		if !strings.HasPrefix(authHeader, "Bearer ") {
-			return response.Forbidden(c, "Token is invalid", nil)
-		}
-
-		tokenString := strings.TrimPrefix(authHeader, "Bearer ")
-
-		claims, err := jwt.ValidateJWT(tokenString)
-		if err != nil {
-			return c.JSON(http.StatusUnauthorized, map[string]string{
-				"error": err.Error(),
-			})
-		}
-
-		c.Set("user", claims)
-
-		return next(c)
 	}
 }
