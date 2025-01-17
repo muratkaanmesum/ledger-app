@@ -12,6 +12,7 @@ type BalanceService interface {
 	UpdateUserBalance(userID uint, amount float64) error
 	IncrementUserBalance(userID uint, amount float64) error
 	DecrementUserBalance(userID uint, amount float64) error
+	CreateBalance(user *models.User) (*models.Balance, error)
 }
 type balanceService struct {
 	repo repositories.BalanceRepository
@@ -19,6 +20,15 @@ type balanceService struct {
 
 func NewBalanceService(repo repositories.BalanceRepository) BalanceService {
 	return &balanceService{repo: repo}
+}
+
+func (s *balanceService) CreateBalance(user *models.User) (*models.Balance, error) {
+	balance, err := s.repo.CreateBalance(user.ID, 0)
+	if err != nil {
+		return nil, err
+	}
+
+	return balance, nil
 }
 
 func (s *balanceService) GetUserBalance(userID uint) (*models.Balance, error) {

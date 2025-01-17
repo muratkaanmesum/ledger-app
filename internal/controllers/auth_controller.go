@@ -53,6 +53,11 @@ func RegisterUser(c echo.Context) error {
 	}
 
 	logger.Logger.Info("User registered successfully", zap.String("username", req.Username), zap.String("email", req.Email))
+	balanceService := services.NewBalanceService(repositories.NewBalanceRepository())
+	_, err = balanceService.CreateBalance(user)
+	if err != nil {
+		return response.BadRequest(c, "Error", err)
+	}
 
 	return response.Ok(c, "User created", user)
 }

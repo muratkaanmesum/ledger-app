@@ -20,6 +20,7 @@ type BalanceRepository interface {
 	UpdateBalance(userID uint, amount float64) error
 	IncrementBalance(userID uint, amount float64) error
 	DecrementBalance(userID uint, amount float64) error
+	CreateBalance(userID uint, amount float64) (*models.Balance, error)
 }
 
 type balanceRepository struct {
@@ -134,4 +135,17 @@ func (r *balanceRepository) DecrementBalance(userID uint, amount float64) error 
 	})
 
 	return err
+}
+
+func (r *balanceRepository) CreateBalance(userID uint, amount float64) (*models.Balance, error) {
+	var balance models.Balance
+	balanceDB := db.DB.Create(&models.Balance{
+		UserID: userID,
+		Amount: amount,
+	})
+	if balanceDB.Error != nil {
+		return nil, balanceDB.Error
+	}
+
+	return &balance, nil
 }
