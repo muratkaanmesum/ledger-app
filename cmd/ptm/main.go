@@ -1,9 +1,11 @@
 package main
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"log"
+	"os"
 	"ptm/configs"
 	"ptm/internal/db"
 	"ptm/internal/db/redis"
@@ -29,7 +31,10 @@ func main() {
 
 	e := echo.New()
 	e.Validator = validator.New()
-	seeder.SeedUsers()
+	fmt.Println()
+	if os.Getenv("APP_ENV") == "development" {
+		seeder.SeedUsers()
+	}
 
 	routes.InitRoutes(e)
 	e.Logger.Fatal(e.Start(":8080"))

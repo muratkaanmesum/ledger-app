@@ -1,24 +1,19 @@
 FROM golang:1.23 AS builder
 
-# Install Air for hot reloading and Delve for debugging
 RUN go install github.com/air-verse/air@v1.61.5
 RUN go install github.com/go-delve/delve/cmd/dlv@latest
 
 WORKDIR /app
 
-# Copy dependency files
 COPY go.mod go.sum ./
 RUN go mod download
 
-# Copy source code
 COPY . .
 
-# Build application
 RUN GOOS=linux GOARCH=amd64 go build -o main ./cmd/ptm/main.go
 
 FROM golang:1.23 AS runtime
 
-# Install Air for hot reloading
 RUN go install github.com/air-verse/air@v1.61.5
 
 WORKDIR /app

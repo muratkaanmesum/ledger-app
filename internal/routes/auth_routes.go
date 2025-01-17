@@ -2,7 +2,7 @@ package routes
 
 import (
 	"github.com/labstack/echo/v4"
-	"ptm/controllers"
+	"ptm/internal/controllers"
 )
 
 func RegisterAuthRoutes(e *echo.Echo) {

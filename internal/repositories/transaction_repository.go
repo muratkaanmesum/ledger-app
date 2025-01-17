@@ -21,9 +21,6 @@ func NewTransactionRepository() *TransactionRepository {
 }
 
 func (r *TransactionRepository) CreateTransaction(transaction *models.Transaction) error {
-	if db.DB != nil {
-		return db.DB.Create(transaction).Error
-	}
 	return db.DB.Create(transaction).Error
 }
 

@@ -24,7 +24,8 @@ func SeedUsers() {
 
 	for _, user := range users {
 		var existingUser models.User
-		if err := db.DB.Where("username = ?", user.Username).First(&existingUser).Error; err == nil {
+		dbUser := db.DB.Where("username = ?", user.Username).First(&existingUser)
+		if dbUser.Error == nil {
 			log.Printf("User with username %s already exists. Skipping seed.", user.Username)
 			continue
 		}
