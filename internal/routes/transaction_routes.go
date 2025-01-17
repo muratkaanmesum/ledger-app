@@ -9,4 +9,5 @@ func RegisterTransactionRoutes(c *echo.Echo) {
 	group := c.Group("/transactions")
 
 	group.POST("/credit", controllers.HandleCredit)
+	group.POST("/debit", controllers.HandleDebit)
 }
