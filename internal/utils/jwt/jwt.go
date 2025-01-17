@@ -4,6 +4,7 @@ import (
 	"errors"
 	"fmt"
 	"os"
+	"ptm/internal/models"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -12,18 +13,20 @@ import (
 type CustomClaims struct {
 	Username string `json:"username"`
 	Role     string `json:"role"`
+	Id       uint   `json:"id"`
 	jwt.RegisteredClaims
 }
 
-func GenerateJWT(username, role string) (string, error) {
+func GenerateJWT(user *models.User) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
 	if secret == "" {
 		return "", fmt.Errorf("JWT_SECRET is not set in environment variables")
 	}
 
 	claims := jwt.MapClaims{
-		"username": username,
-		"role":     role,
+		"username": user.Username,
+		"role":     user.Role,
+		"id":       user.ID,
 		"exp":      time.Now().Add(24 * time.Hour).Unix(),
 	}
 

@@ -28,4 +28,5 @@ func InitRoutes(e *echo.Echo) {
 	})
 	RegisterUserRoutes(e)
 	RegisterAuthRoutes(e)
+	RegisterTransactionRoutes(e)
 }

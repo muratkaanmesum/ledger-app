@@ -83,7 +83,7 @@ func AuthenticateUser(c echo.Context) error {
 		logger.Logger.Error("Failed to verify user", zap.String("username", req.Username), zap.Error(err))
 		return response.BadRequest(c, "Authentication Error", err)
 	}
-	token, err := jwt.GenerateJWT(user.Username, user.Role)
+	token, err := jwt.GenerateJWT(user)
 
 	if err != nil {
 		logger.Logger.Error("Failed to generate token", zap.String("username", req.Username), zap.Error(err))
