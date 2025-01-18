@@ -8,6 +8,6 @@ type BalanceController struct {
 	Repo repositories.BalanceRepository
 }
 
-func test() {
+func getBalance(userId uint) {
 
 }

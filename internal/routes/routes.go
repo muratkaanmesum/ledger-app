@@ -5,7 +5,7 @@ import (
 	"github.com/labstack/echo/v4/middleware"
 	"ptm/internal/db/seeder"
 	"ptm/internal/middlewares"
-	"ptm/internal/utils/customError"
+	v1 "ptm/internal/routes/v1"
 	"ptm/internal/utils/response"
 )
 
@@ -23,10 +23,6 @@ func InitRoutes(e *echo.Echo) {
 		seeder.SeedUsers()
 		return response.Ok(c, "OK", nil)
 	})
-	e.GET("/test", func(c echo.Context) error {
-		return customError.New(customError.InternalServerError)
-	})
-	RegisterUserRoutes(e)
-	RegisterAuthRoutes(e)
-	RegisterTransactionRoutes(e)
+
+	v1.HandleV1Routes(e)
 }

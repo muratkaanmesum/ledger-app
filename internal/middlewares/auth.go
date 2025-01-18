@@ -31,9 +31,9 @@ func JWTAuthenticate() echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
 			publicRoutes := map[string]bool{
-				"/health":        true,
-				"/auth/login":    true,
-				"/auth/register": true,
+				"/health":               true,
+				"/api/v1/auth/login":    true,
+				"/api/v1/auth/register": true,
 			}
 
 			if publicRoutes[c.Path()] {
