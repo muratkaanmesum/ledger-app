@@ -1,8 +1,8 @@
 package middlewares
 
 import (
-	"ptm/internal/utils/jwt"
 	"ptm/internal/utils/response"
+	"ptm/pkg/jwt"
 	"strings"
 
 	"github.com/labstack/echo/v4"

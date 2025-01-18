@@ -1,11 +1,11 @@
 package routes
 
 import (
-	"errors"
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	"ptm/internal/db/seeder"
 	"ptm/internal/middlewares"
+	"ptm/internal/utils/customError"
 	"ptm/internal/utils/response"
 )
 
@@ -24,7 +24,7 @@ func InitRoutes(e *echo.Echo) {
 		return response.Ok(c, "OK", nil)
 	})
 	e.GET("/test", func(c echo.Context) error {
-		return errors.New("ERROR SENT")
+		return customError.New(customError.InternalServerError)
 	})
 	RegisterUserRoutes(e)
 	RegisterAuthRoutes(e)

@@ -11,8 +11,8 @@ import (
 	"ptm/internal/db/redis"
 	"ptm/internal/db/seeder"
 	"ptm/internal/routes"
-	"ptm/internal/utils/logger"
-	"ptm/internal/utils/validator"
+	"ptm/pkg/logger"
+	"ptm/pkg/validator"
 )
 
 func main() {

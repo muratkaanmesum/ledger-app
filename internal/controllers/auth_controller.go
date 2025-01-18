@@ -6,9 +6,9 @@ import (
 	"ptm/internal/models"
 	"ptm/internal/repositories"
 	"ptm/internal/services"
-	"ptm/internal/utils/jwt"
-	"ptm/internal/utils/logger"
 	"ptm/internal/utils/response"
+	"ptm/pkg/jwt"
+	"ptm/pkg/logger"
 )
 
 type createUserRequest struct {
