@@ -5,6 +5,7 @@ import (
 )
 
 func HandleV1Routes(c *echo.Echo) {
+
 	v1Group := c.Group("/api/v1")
 
 	RegisterUserRoutes(v1Group)

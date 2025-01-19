@@ -8,6 +8,5 @@ type BalanceController struct {
 	Repo repositories.BalanceRepository
 }
 
-func getBalance(userId uint) {
-
+func (b *BalanceController) getBalance(userId uint) {
 }

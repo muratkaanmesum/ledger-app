@@ -15,7 +15,8 @@ type BalanceService interface {
 	CreateBalance(user *models.User) (*models.Balance, error)
 }
 type balanceService struct {
-	repo repositories.BalanceRepository
+	repo     repositories.BalanceRepository
+	userRepo repositories.UserRepository
 }
 
 func NewBalanceService(repo repositories.BalanceRepository) BalanceService {

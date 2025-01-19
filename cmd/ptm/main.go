@@ -10,6 +10,7 @@ import (
 	"ptm/internal/db"
 	"ptm/internal/db/redis"
 	"ptm/internal/db/seeder"
+	"ptm/internal/di"
 	"ptm/internal/routes"
 	"ptm/pkg/logger"
 	"ptm/pkg/validator"
@@ -35,6 +36,8 @@ func main() {
 	if os.Getenv("APP_ENV") == "development" {
 		seeder.SeedUsers()
 	}
+
+	di.InitDiContainer()
 
 	routes.InitRoutes(e)
 	e.Logger.Fatal(e.Start(":8080"))
