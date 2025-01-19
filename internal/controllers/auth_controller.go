@@ -22,11 +22,8 @@ type authController struct {
 }
 
 func NewAuthController() AuthController {
-	service, ok := di.Resolve((*services.UserService)(nil)).(services.UserService)
+	service := di.Resolve[services.UserService]()
 
-	if !ok || service == nil {
-		panic("Failed to resolve UserService")
-	}
 	return &authController{
 		userService: service,
 	}

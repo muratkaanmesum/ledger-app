@@ -27,10 +27,7 @@ type TransactionRequest struct {
 }
 
 func NewUserController() UserController {
-	service, ok := di.Resolve((*services.UserService)(nil)).(services.UserService)
-	if !ok || service == nil {
-		panic("Failed to resolve UserService")
-	}
+	service := di.Resolve[services.UserService]()
 
 	return &userController{
 		userService: service,

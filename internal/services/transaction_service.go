@@ -13,7 +13,7 @@ type TransactionServiceInterface interface {
 }
 
 type TransactionService struct {
-	repository *repositories.TransactionRepository
+	repository repositories.TransactionRepository
 }
 
 func NewTransactionService() TransactionServiceInterface {

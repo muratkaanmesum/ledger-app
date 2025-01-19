@@ -2,6 +2,7 @@ package services
 
 import (
 	"errors"
+	"ptm/internal/di"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
 	"time"
@@ -19,8 +20,11 @@ type balanceService struct {
 	userRepo repositories.UserRepository
 }
 
-func NewBalanceService(repo repositories.BalanceRepository) BalanceService {
-	return &balanceService{repo: repo}
+func NewBalanceService() BalanceService {
+	return &balanceService{
+		repo:     di.Resolve[repositories.BalanceRepository](),
+		userRepo: di.Resolve[repositories.UserRepository](),
+	}
 }
 
 func (s *balanceService) CreateBalance(user *models.User) (*models.Balance, error) {

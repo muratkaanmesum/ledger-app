@@ -1,30 +1,29 @@
 package repositories
 
 import (
-	"gorm.io/gorm"
 	"ptm/internal/db"
 	"ptm/internal/models"
 )
 
-type TransactionRepository struct{}
+type transactionRepository struct{}
 
-type ITransactionRepository interface {
-	CreateTransaction(tx *gorm.DB, transaction *models.Transaction) error
+type TransactionRepository interface {
+	CreateTransaction(transaction *models.Transaction) error
 	GetTransactionByID(id uint) (*models.Transaction, error)
 	GetAllTransactions() ([]models.Transaction, error)
-	UpdateTransaction(tx *gorm.DB, transaction *models.Transaction) error
-	DeleteTransaction(tx *gorm.DB, id uint) error
+	UpdateTransaction(transaction *models.Transaction) error
+	DeleteTransaction(id uint) error
 }
 
-func NewTransactionRepository() *TransactionRepository {
-	return &TransactionRepository{}
+func NewTransactionRepository() TransactionRepository {
+	return &transactionRepository{}
 }
 
-func (r *TransactionRepository) CreateTransaction(transaction *models.Transaction) error {
+func (r *transactionRepository) CreateTransaction(transaction *models.Transaction) error {
 	return db.DB.Create(transaction).Error
 }
 
-func (r *TransactionRepository) GetTransactionByID(id uint) (*models.Transaction, error) {
+func (r *transactionRepository) GetTransactionByID(id uint) (*models.Transaction, error) {
 	var transaction models.Transaction
 	if err := db.DB.First(&transaction, id).Error; err != nil {
 		return nil, err
@@ -32,7 +31,7 @@ func (r *TransactionRepository) GetTransactionByID(id uint) (*models.Transaction
 	return &transaction, nil
 }
 
-func (r *TransactionRepository) GetAllTransactions() ([]models.Transaction, error) {
+func (r *transactionRepository) GetAllTransactions() ([]models.Transaction, error) {
 	var transactions []models.Transaction
 	if err := db.DB.Find(&transactions).Error; err != nil {
 		return nil, err
@@ -40,14 +39,14 @@ func (r *TransactionRepository) GetAllTransactions() ([]models.Transaction, erro
 	return transactions, nil
 }
 
-func (r *TransactionRepository) UpdateTransaction(transaction *models.Transaction) error {
+func (r *transactionRepository) UpdateTransaction(transaction *models.Transaction) error {
 	if db.DB != nil {
 		return db.DB.Save(transaction).Error
 	}
 	return db.DB.Save(transaction).Error
 }
 
-func (r *TransactionRepository) DeleteTransaction(id uint) error {
+func (r *transactionRepository) DeleteTransaction(id uint) error {
 	if db.DB != nil {
 		return db.DB.Delete(&models.Transaction{}, id).Error
 	}
