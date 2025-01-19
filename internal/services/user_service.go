@@ -3,7 +3,6 @@ package services
 import (
 	"errors"
 	"fmt"
-	"ptm/internal/di"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
 )
@@ -19,10 +18,10 @@ type userService struct {
 	userRepo repositories.UserRepository
 }
 
-func NewUserService() UserService {
+func NewUserService(userRepository repositories.UserRepository) UserService {
 
 	return &userService{
-		userRepo: di.Resolve[repositories.UserRepository](),
+		userRepo: userRepository,
 	}
 }
 

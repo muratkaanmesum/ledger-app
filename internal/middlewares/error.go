@@ -23,12 +23,10 @@ func ErrorMiddleware() echo.MiddlewareFunc {
 		return func(c echo.Context) error {
 			err := next(c)
 			if err != nil {
-				logger.Logger.Error("Unhandled error in middleware", zap.Error(err))
-
 				var customErr *customError.Error
 				if errors.As(err, &customErr) {
 					message := getErrorMessage(int(customErr.Code))
-					logger.Logger.Error("Custom error encountered",
+					logger.Logger.Error("Error Message",
 						zap.Int("code", int(customErr.Code)),
 						zap.String("message", message),
 					)
@@ -50,7 +48,6 @@ func ErrorMiddleware() echo.MiddlewareFunc {
 	}
 }
 
-// getErrorMessage retrieves the relevant message for the given status code from the map
 func getErrorMessage(statusCode int) string {
 	if message, exists := errorMessages[statusCode]; exists {
 		return message

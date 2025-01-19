@@ -1,6 +1,9 @@
 package repositories
 
 import (
+	"errors"
+	"fmt"
+	"gorm.io/gorm"
 	"ptm/internal/db"
 	"ptm/internal/models"
 )
@@ -37,6 +40,10 @@ func (r *userRepository) GetUserByUsername(username string) (*models.User, error
 	var user models.User
 	err := db.DB.Where("username = ?", username).First(&user).Error
 	if err != nil {
+		fmt.Println("ERROR IS HERE")
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, fmt.Errorf("user not found with username %s: %w", username, err)
+		}
 		return nil, err
 	}
 	return &user, nil

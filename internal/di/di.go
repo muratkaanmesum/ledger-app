@@ -38,28 +38,10 @@ func (c *Container) resolve(serviceType any) any {
 func Resolve[T any]() T {
 	var zero T
 	resolved, ok := diContainer.resolve((*T)(nil)).(T)
-	if !ok || resolved == nil {
+	if !ok || reflect.ValueOf(resolved).IsNil() {
 		panic(fmt.Sprintf("Failed to resolve dependency: %T", zero))
 	}
 	return resolved
-}
-
-func registerServices(container *Container) {
-	userService := services.NewUserService()
-	transactionService := services.NewTransactionService()
-	balanceService := services.NewBalanceService()
-
-	if err := container.RegisterSingleton((*services.UserService)(nil), userService); err != nil {
-		panic(err)
-	}
-
-	if err := container.RegisterSingleton((*services.BalanceService)(nil), balanceService); err != nil {
-		panic(err)
-	}
-
-	if err := container.RegisterSingleton((*services.TransactionService)(nil), transactionService); err != nil {
-		panic(err)
-	}
 }
 
 func registerRepositories(container *Container) {
@@ -80,11 +62,36 @@ func registerRepositories(container *Container) {
 	}
 }
 
+func registerServices(container *Container) {
+	userService := services.NewUserService(Resolve[repositories.UserRepository]())
+
+	balanceService := services.NewBalanceService(
+		Resolve[repositories.BalanceRepository](),
+		Resolve[repositories.UserRepository](),
+	)
+
+	transactionService := services.NewTransactionService(
+		Resolve[repositories.TransactionRepository](),
+	)
+
+	if err := container.RegisterSingleton((*services.UserService)(nil), userService); err != nil {
+		panic(err)
+	}
+
+	if err := container.RegisterSingleton((*services.BalanceService)(nil), balanceService); err != nil {
+		panic(err)
+	}
+
+	if err := container.RegisterSingleton((*services.TransactionService)(nil), transactionService); err != nil {
+		panic(err)
+	}
+}
+
 func InitDiContainer() {
 	container := NewContainer()
 
+	diContainer = container
+
 	registerRepositories(container)
 	registerServices(container)
-
-	diContainer = container
 }

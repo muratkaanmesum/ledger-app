@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"log"
@@ -29,16 +28,14 @@ func main() {
 
 	db.InitDB()
 	redis.InitRedis()
+	di.InitDiContainer()
 
 	e := echo.New()
 	e.Validator = validator.New()
-	fmt.Println()
+
 	if os.Getenv("APP_ENV") == "development" {
 		seeder.SeedUsers()
 	}
-
-	di.InitDiContainer()
-
 	routes.InitRoutes(e)
 	e.Logger.Fatal(e.Start(":8080"))
 }

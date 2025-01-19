@@ -21,10 +21,7 @@ type transactionController struct {
 	transactionService services.TransactionService
 }
 
-func NewTransactionController(
-	balanceService services.BalanceService,
-	transactionService services.TransactionService,
-) TransactionController {
+func NewTransactionController() TransactionController {
 
 	return &transactionController{
 		balanceService:     di.Resolve[services.BalanceService](),

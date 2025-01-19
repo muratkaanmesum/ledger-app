@@ -4,6 +4,7 @@ import (
 	"log"
 	"math/rand"
 	"ptm/internal/db"
+	"ptm/internal/di"
 	"ptm/internal/models"
 	"ptm/internal/services"
 )
@@ -29,19 +30,21 @@ func SeedUsers() {
 			log.Printf("User with username %s already exists. Skipping seed.", user.Username)
 			continue
 		}
-		createdUser, err := models.NewUser(user.Username, user.Email, user.Password, user.Role)
+
+		userService := di.Resolve[services.UserService]()
+
+		_, err := userService.RegisterUser(&models.User{
+			Username: user.Username,
+			Role:     user.Role,
+			Email:    user.Email,
+		})
 		if err != nil {
-			log.Printf("Failed to create user %s: %v", user.Username, err)
-			continue
-		}
-		if err := db.DB.Create(&createdUser).Error; err != nil {
-			log.Printf("Failed to seed user %s: %v", user.Username, err)
-			continue
+			log.Printf("Failed to register user. Skipping seed.")
 		}
 	}
 }
 
-func createSpecificTransactions(users []models.User, transactionService *services.TransactionService) {
+func createSpecificTransactions(users []models.User, transactionService services.TransactionService) {
 	userCount := len(users)
 	if userCount < 2 {
 		log.Println("Not enough users to create send/receive transactions")
