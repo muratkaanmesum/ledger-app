@@ -49,7 +49,7 @@ func (r *balanceRepository) GetBalance(userID uint, date *time.Time) (*models.Ba
 		query = query.Order("last_updated_at DESC")
 	}
 
-	err := query.First(&balance).Error
+	err := query.Preload("User").First(&balance).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
 			return nil, nil

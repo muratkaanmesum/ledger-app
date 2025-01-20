@@ -92,6 +92,19 @@ func Forbidden(c echo.Context, message string, err ...error) error {
 	})
 }
 
+func Accepted(c echo.Context, message string, data ...any) error {
+	var firstData any
+	if len(data) > 0 && data[0] != nil {
+		firstData = data[0]
+	}
+
+	return c.JSON(http.StatusAccepted, Response{
+		Status:  http.StatusAccepted,
+		Message: message,
+		Error:   firstData,
+	})
+}
+
 func formatError(err error) any {
 	if err == nil {
 		return nil

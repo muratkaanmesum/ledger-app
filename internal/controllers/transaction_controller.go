@@ -9,6 +9,7 @@ import (
 	"ptm/internal/utils/customError"
 	"ptm/internal/utils/response"
 	"ptm/pkg/jwt"
+	"ptm/pkg/worker"
 )
 
 type TransactionController interface {
@@ -19,13 +20,16 @@ type TransactionController interface {
 type transactionController struct {
 	balanceService     services.BalanceService
 	transactionService services.TransactionService
+	pool               *worker.Pool
 }
 
 func NewTransactionController() TransactionController {
+	pool := worker.GetPool()
 
 	return &transactionController{
 		balanceService:     di.Resolve[services.BalanceService](),
 		transactionService: di.Resolve[services.TransactionService](),
+		pool:               pool,
 	}
 }
 
@@ -47,33 +51,36 @@ func (tc *transactionController) HandleCredit(c echo.Context) error {
 		return customError.New(customError.BadRequest, err)
 	}
 
-	db, err := transaction.StartTransaction()
-	if err != nil {
-		return customError.New(customError.InternalServerError, err)
-	}
-
-	if err := tc.balanceService.IncrementUserBalance(req.UserId, req.Amount); err != nil {
-		if rollbackErr := transaction.RollbackTransaction(db); rollbackErr != nil {
-			return customError.New(customError.InternalServerError, rollbackErr)
+	tc.pool.AddTask(func() {
+		db, err := transaction.StartTransaction()
+		if err != nil {
+			//return customError.New(customError.InternalServerError, err)
 		}
-		return customError.New(customError.InternalServerError, err)
-	}
 
-	createdTransaction, err := tc.transactionService.CreateTransaction(
-		user.Id, req.UserId, req.Amount, models.Credit,
-	)
-	if err != nil {
-		if rollbackErr := transaction.RollbackTransaction(db); rollbackErr != nil {
-			return customError.New(customError.InternalServerError, rollbackErr)
+		if err := tc.balanceService.IncrementUserBalance(req.UserId, req.Amount); err != nil {
+			if rollbackErr := transaction.RollbackTransaction(db); rollbackErr != nil {
+				//	return customError.New(customError.InternalServerError, rollbackErr)
+			}
+			// return customError.New(customError.InternalServerError, err)
 		}
-		return customError.New(customError.InternalServerError, err)
-	}
 
-	if err := transaction.CommitTransaction(db); err != nil {
-		return customError.New(customError.InternalServerError, err)
-	}
+		_, err = tc.transactionService.CreateTransaction(
+			user.Id, req.UserId, req.Amount, models.Credit,
+		)
+		if err != nil {
+			if rollbackErr := transaction.RollbackTransaction(db); rollbackErr != nil {
+				//return customError.New(customError.InternalServerError, rollbackErr)
+			}
+			//return customError.New(customError.InternalServerError, err)
+		}
 
-	return response.Ok(c, "Transaction successful", createdTransaction)
+		if err := transaction.CommitTransaction(db); err != nil {
+			// return customError.New(customError.InternalServerError, err)
+		}
+
+	})
+
+	return response.Accepted(c, "Transaction Accepted")
 }
 
 func (tc *transactionController) HandleDebit(c echo.Context) error {

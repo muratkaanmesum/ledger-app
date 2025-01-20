@@ -13,6 +13,7 @@ import (
 	"ptm/internal/routes"
 	"ptm/pkg/logger"
 	"ptm/pkg/validator"
+	"ptm/pkg/worker"
 )
 
 func main() {
@@ -29,6 +30,7 @@ func main() {
 	db.InitDB()
 	redis.InitRedis()
 	di.InitDiContainer()
+	worker.InitWorkerPool(10)
 
 	e := echo.New()
 	e.Validator = validator.New()

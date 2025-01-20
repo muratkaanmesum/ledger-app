@@ -17,7 +17,8 @@ type balanceController struct {
 }
 
 type BalanceRequest struct {
-	Id uint `json:"id"`
+	Id   uint   `json:"id"`
+	Date string `json:"date,omitempty"`
 }
 
 func NewBalanceController() BalanceController {
