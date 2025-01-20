@@ -19,6 +19,7 @@ type CustomClaims struct {
 
 func GenerateJWT(user *models.User) (string, error) {
 	secret := os.Getenv("JWT_SECRET")
+
 	if secret == "" {
 		return "", fmt.Errorf("JWT_SECRET is not set in environment variables")
 	}

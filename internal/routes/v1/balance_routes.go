@@ -10,5 +10,5 @@ func RegisterBalanceRoutes(c *echo.Group) {
 
 	balanceGroup := c.Group("/balances")
 
-	balanceGroup.POST("/current", controller.GetBalance)
+	balanceGroup.GET("/current", controller.GetBalance)
 }

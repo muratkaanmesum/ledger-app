@@ -1,11 +1,13 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"ptm/internal/di"
 	"ptm/internal/services"
 	"ptm/internal/utils/customError"
 	"ptm/internal/utils/response"
+	"ptm/pkg/jwt"
 )
 
 type BalanceController interface {
@@ -17,7 +19,6 @@ type balanceController struct {
 }
 
 type BalanceRequest struct {
-	Id   uint   `json:"id"`
 	Date string `json:"date,omitempty"`
 }
 
@@ -30,16 +31,9 @@ func NewBalanceController() BalanceController {
 }
 
 func (b *balanceController) GetBalance(c echo.Context) error {
-	var request BalanceRequest
-	if err := c.Bind(&request); err != nil {
-		return customError.New(customError.BadRequest, err)
-	}
-
-	if err := c.Validate(request); err != nil {
-		return customError.New(customError.BadRequest, err)
-	}
-
-	balance, err := b.service.GetUserBalance(request.Id)
+	user := c.Get("user").(*jwt.CustomClaims)
+	fmt.Println(user)
+	balance, err := b.service.GetUserBalance(user.Id)
 
 	if err != nil {
 		return customError.New(customError.NotFound, err)

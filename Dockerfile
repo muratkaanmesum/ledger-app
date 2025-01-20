@@ -20,9 +20,10 @@ WORKDIR /app
 
 COPY --from=builder /app/main ./main
 COPY --from=builder /app /app
-COPY --from=builder /app/.env ./.env
 COPY --from=builder /go/bin/air /usr/local/bin/air
 COPY --from=builder /go/bin/dlv /usr/local/bin/dlv
+
+COPY .env /app/.env
 
 EXPOSE 8080 40000
 

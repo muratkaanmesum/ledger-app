@@ -13,7 +13,7 @@ func InitRoutes(e *echo.Echo) {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	//e.Use(middlewares.JWTAuthenticate())
+	e.Use(middlewares.JWTAuthenticate())
 	e.Use(middlewares.ErrorMiddleware())
 
 	e.GET("/health", func(c echo.Context) error {

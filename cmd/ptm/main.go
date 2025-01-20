@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"log"
@@ -24,6 +25,7 @@ func main() {
 	}
 	err = godotenv.Load()
 	if err != nil {
+		fmt.Println("err is ", err)
 		log.Println("No .env file found, using environment variables only")
 	}
 
