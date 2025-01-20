@@ -30,7 +30,6 @@ func SeedUsers() {
 			log.Printf("User with username %s already exists. Skipping seed.", user.Username)
 			continue
 		}
-
 		userService := di.Resolve[services.UserService]()
 
 		_, err := userService.RegisterUser(&models.User{
