@@ -13,7 +13,7 @@ func InitRoutes(e *echo.Echo) {
 
 	e.Use(middleware.Logger())
 	e.Use(middleware.Recover())
-	e.Use(middlewares.JWTAuthenticate())
+	//e.Use(middlewares.JWTAuthenticate())
 	e.Use(middlewares.ErrorMiddleware())
 
 	e.GET("/health", func(c echo.Context) error {
@@ -21,7 +21,7 @@ func InitRoutes(e *echo.Echo) {
 	})
 	e.POST("/seeder", func(c echo.Context) error {
 		seeder.SeedUsers()
-		return response.Ok(c, "OK", nil)
+		return response.Ok(c, "OK")
 	})
 
 	v1.HandleV1Routes(e)

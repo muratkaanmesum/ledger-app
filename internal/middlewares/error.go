@@ -30,6 +30,7 @@ func ErrorMiddleware() echo.MiddlewareFunc {
 						zap.Int("code", int(customErr.Code)),
 						zap.String("message", message),
 					)
+
 					return c.JSON(int(customErr.Code), map[string]any{
 						"status":  customErr.Code,
 						"message": message,
@@ -37,6 +38,7 @@ func ErrorMiddleware() echo.MiddlewareFunc {
 				}
 
 				message := getErrorMessage(500)
+
 				logger.Logger.Error("Generic error encountered", zap.String("message", message))
 				return c.JSON(http.StatusInternalServerError, map[string]any{
 					"status":  http.StatusInternalServerError,

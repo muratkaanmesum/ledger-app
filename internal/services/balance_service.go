@@ -27,9 +27,14 @@ func NewBalanceService(balanceRepository repositories.BalanceRepository, userRep
 }
 
 func (s *balanceService) CreateBalance(user *models.User) (*models.Balance, error) {
-	balance, err := s.repo.CreateBalance(user.ID, 0)
-	if err != nil {
+	exists, err := s.repo.GetBalance(user.ID, nil)
+	if exists != nil {
 		return nil, err
+	}
+
+	balance, createErr := s.repo.CreateBalance(user.ID, 0)
+	if createErr != nil {
+		return nil, createErr
 	}
 
 	return balance, nil

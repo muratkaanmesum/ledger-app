@@ -28,17 +28,35 @@ func SeedUsers() {
 		dbUser := db.DB.Where("username = ?", user.Username).First(&existingUser)
 		if dbUser.Error == nil {
 			log.Printf("User with username %s already exists. Skipping seed.", user.Username)
+		}
+
+		userService := di.Resolve[services.UserService]()
+		createdUser, err := userService.RegisterUser(&models.User{
+			Username:     user.Username,
+			Role:         user.Role,
+			Email:        user.Email,
+			PasswordHash: user.Password,
+		})
+
+		if err != nil {
+			log.Printf("Failed to register user %s. Error: %v. Skipping seed.", user.Username, err)
+		}
+
+		balanceService := di.Resolve[services.BalanceService]()
+		existingBalance, err := balanceService.GetUserBalance(createdUser.ID)
+		if existingBalance != nil {
+			log.Printf("Balance already exists for user %s. Skipping balance creation.", createdUser.Username)
 			continue
 		}
-		userService := di.Resolve[services.UserService]()
 
-		_, err := userService.RegisterUser(&models.User{
-			Username: user.Username,
-			Role:     user.Role,
-			Email:    user.Email,
-		})
+		balance, err := balanceService.CreateBalance(createdUser)
 		if err != nil {
-			log.Printf("Failed to register user. Skipping seed.")
+			log.Printf("Failed to create balance for user %s. Error: %v.", createdUser.Username, err)
+			continue
+		}
+
+		if balance != nil {
+			log.Printf("Balance successfully created for user %s.", createdUser.Username)
 		}
 	}
 }

@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"log"
@@ -34,7 +33,6 @@ func main() {
 	e := echo.New()
 	e.Validator = validator.New()
 
-	fmt.Println(os.Getenv("ENVİRONMENT"))
 	if os.Getenv("APP_ENV") == "development" {
 		seeder.SeedUsers()
 	}

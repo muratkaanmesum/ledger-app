@@ -11,4 +11,5 @@ func HandleV1Routes(c *echo.Echo) {
 	RegisterUserRoutes(v1Group)
 	RegisterAuthRoutes(v1Group)
 	RegisterTransactionRoutes(v1Group)
+	RegisterBalanceRoutes(v1Group)
 }
