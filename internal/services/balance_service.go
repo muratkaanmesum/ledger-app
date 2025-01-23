@@ -70,14 +70,31 @@ func (s *balanceService) IncrementUserBalance(userID uint, amount float64) error
 	if amount <= 0 {
 		return errors.New("increment amount must be greater than zero")
 	}
-	return s.repo.IncrementBalance(userID, amount)
-}
 
+	if err := s.repo.IncrementBalance(userID, amount); err != nil {
+		return err
+	}
+
+	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
+		return err
+	}
+
+	return nil
+}
 func (s *balanceService) DecrementUserBalance(userID uint, amount float64) error {
 	if amount <= 0 {
 		return errors.New("decrement amount must be greater than zero")
 	}
-	return s.repo.DecrementBalance(userID, amount)
+
+	if err := s.repo.DecrementBalance(userID, amount); err != nil {
+		return err
+	}
+
+	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *balanceService) GetBalanceAtTime(userID uint, time time.Time) (*models.BalanceHistory, error) {
