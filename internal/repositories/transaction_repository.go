@@ -10,7 +10,7 @@ type transactionRepository struct{}
 type TransactionRepository interface {
 	CreateTransaction(transaction *models.Transaction) error
 	GetTransactionByID(id uint) (*models.Transaction, error)
-	GetAllTransactions() ([]models.Transaction, error)
+	GetAllTransactions(userId uint, page, pageSize int) ([]models.Transaction, error)
 	UpdateTransaction(transaction *models.Transaction) error
 	DeleteTransaction(id uint) error
 }
@@ -31,9 +31,11 @@ func (r *transactionRepository) GetTransactionByID(id uint) (*models.Transaction
 	return &transaction, nil
 }
 
-func (r *transactionRepository) GetAllTransactions() ([]models.Transaction, error) {
+func (r *transactionRepository) GetAllTransactions(userId uint, page, pageSize int) ([]models.Transaction, error) {
 	var transactions []models.Transaction
-	if err := db.DB.Find(&transactions).Error; err != nil {
+	query := db.DB.Where("user_id = ?", userId)
+	offset := (page - 1) * pageSize
+	if err := query.Limit(pageSize).Offset(offset).Find(&transactions).Error; err != nil {
 		return nil, err
 	}
 	return transactions, nil

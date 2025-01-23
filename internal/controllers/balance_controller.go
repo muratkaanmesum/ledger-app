@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"fmt"
 	"github.com/labstack/echo/v4"
 	"ptm/internal/di"
 	"ptm/internal/services"
@@ -13,6 +12,7 @@ import (
 
 type BalanceController interface {
 	GetBalance(c echo.Context) error
+	BalanceAtTime(c echo.Context) error
 }
 
 type balanceController struct {
@@ -33,7 +33,7 @@ func NewBalanceController() BalanceController {
 
 func (b *balanceController) GetBalance(c echo.Context) error {
 	user := c.Get("user").(*jwt.CustomClaims)
-	fmt.Println(user)
+
 	balance, err := b.service.GetUserBalance(user.Id)
 
 	if err != nil {

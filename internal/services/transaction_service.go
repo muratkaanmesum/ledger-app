@@ -1,7 +1,6 @@
 package services
 
 import (
-	"ptm/internal/db"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
 )
@@ -52,10 +51,10 @@ func (t *transactionService) UpdateTransactionState(transactionId uint, state mo
 
 func (t *transactionService) ListTransactions(userID uint, limit, offset int) ([]models.Transaction, error) {
 	var transactions []models.Transaction
-	if err := db.DB.Where("from_user_id = ?", userID).
-		Limit(limit).
-		Offset(offset).
-		Find(&transactions).Error; err != nil {
+
+	transactions, err := t.repository.GetAllTransactions(userID, limit, offset)
+
+	if err != nil {
 		return nil, err
 	}
 	return transactions, nil
