@@ -9,6 +9,7 @@ func RegisterTransactionRoutes(c *echo.Group) {
 	controller := controllers.NewTransactionController()
 	group := c.Group("/transactions")
 
+	group.GET("", controller.GetTransactions)
 	group.POST("/credit", controller.HandleCredit)
 	group.POST("/debit", controller.HandleDebit)
 }

@@ -23,6 +23,7 @@ func InitDB() {
 		&models.Transaction{},
 		&models.Balance{},
 		&models.AuditLog{},
+		&models.BalanceHistory{},
 	); err != nil {
 		log.Fatalf("Failed to migrate database: %v", err)
 	}

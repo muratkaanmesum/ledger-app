@@ -8,8 +8,8 @@ import (
 
 type TransactionService interface {
 	CreateTransaction(fromId, toId uint, amount float64, transactionType models.TransactionType) (*models.Transaction, error)
-	ListTransactions(userID uint) ([]models.Transaction, error)
-	UpdateTransactionState(fromId uint) error
+	ListTransactions(userID uint, limit, offset int) ([]models.Transaction, error)
+	UpdateTransactionState(transactionId uint, state models.TransactionType) error
 }
 
 type transactionService struct {
@@ -35,8 +35,8 @@ func (t *transactionService) CreateTransaction(fromId, toId uint, amount float64
 	return toTransaction, nil
 }
 
-func (t *transactionService) UpdateTransactionState(fromId uint) error {
-	transaction, err := t.repository.GetTransactionByID(fromId)
+func (t *transactionService) UpdateTransactionState(transactionId uint, state models.TransactionType) error {
+	transaction, err := t.repository.GetTransactionByID(transactionId)
 
 	if err != nil {
 		return err
@@ -50,9 +50,12 @@ func (t *transactionService) UpdateTransactionState(fromId uint) error {
 	return nil
 }
 
-func (t *transactionService) ListTransactions(userID uint) ([]models.Transaction, error) {
+func (t *transactionService) ListTransactions(userID uint, limit, offset int) ([]models.Transaction, error) {
 	var transactions []models.Transaction
-	if err := db.DB.Where("user_id = ?", userID).Find(&transactions).Error; err != nil {
+	if err := db.DB.Where("from_user_id = ?", userID).
+		Limit(limit).
+		Offset(offset).
+		Find(&transactions).Error; err != nil {
 		return nil, err
 	}
 	return transactions, nil

@@ -48,6 +48,7 @@ func registerRepositories(container *Container) {
 	userRepository := repositories.NewUserRepository()
 	balanceRepository := repositories.NewBalanceRepository()
 	transactionRepository := repositories.NewTransactionRepository()
+	balanceHistoryRepository := repositories.NewBalanceHistoryRepository()
 
 	if err := container.RegisterSingleton((*repositories.UserRepository)(nil), userRepository); err != nil {
 		panic(err)
@@ -60,6 +61,10 @@ func registerRepositories(container *Container) {
 	if err := container.RegisterSingleton((*repositories.BalanceRepository)(nil), balanceRepository); err != nil {
 		panic(err)
 	}
+
+	if err := container.RegisterSingleton((*repositories.BalanceHistoryRepository)(nil), balanceHistoryRepository); err != nil {
+		panic(err)
+	}
 }
 
 func registerServices(container *Container) {
@@ -67,7 +72,7 @@ func registerServices(container *Container) {
 
 	balanceService := services.NewBalanceService(
 		Resolve[repositories.BalanceRepository](),
-		Resolve[repositories.UserRepository](),
+		Resolve[repositories.BalanceHistoryRepository](),
 	)
 
 	transactionService := services.NewTransactionService(
