@@ -14,6 +14,7 @@ type BalanceHistoryRepository interface {
 	GetByUserID(userID string, limit, offset int) ([]models.BalanceHistory, error)
 	Update(entry *models.BalanceHistory) error
 	Delete(id uint) error
+	GetBalanceAtTime(userId uint, time time.Time) (*models.BalanceHistory, error)
 }
 
 func NewBalanceHistoryRepository() BalanceHistoryRepository {
@@ -54,10 +55,11 @@ func (r *balanceHistoryRepository) Delete(id uint) error {
 	return db.DB.Delete(&models.BalanceHistory{}, id).Error
 }
 
-func (r *balanceHistoryRepository) GetBalanceAtTime(time time.Time) (*models.BalanceHistory, error) {
+func (r *balanceHistoryRepository) GetBalanceAtTime(userId uint, time time.Time) (*models.BalanceHistory, error) {
 	history := &models.BalanceHistory{}
 
-	err := db.DB.Where("created_at < ?", time).Find(&models.BalanceHistory{}).First(&history).Error
+	err := db.DB.Where("created_at < ? and user_id = ?", time, userId).
+		Find(&models.BalanceHistory{}).First(&history).Error
 	if err != nil {
 		return nil, err
 	}

@@ -4,6 +4,7 @@ import (
 	"errors"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
+	"time"
 )
 
 type BalanceService interface {
@@ -12,6 +13,7 @@ type BalanceService interface {
 	IncrementUserBalance(userID uint, amount float64) error
 	DecrementUserBalance(userID uint, amount float64) error
 	CreateBalance(user *models.User) (*models.Balance, error)
+	GetBalanceAtTime(userID uint, time time.Time) (*models.BalanceHistory, error)
 }
 type balanceService struct {
 	repo              repositories.BalanceRepository
@@ -20,7 +22,8 @@ type balanceService struct {
 
 func NewBalanceService(balanceRepository repositories.BalanceRepository, historyRepository repositories.BalanceHistoryRepository) BalanceService {
 	return &balanceService{
-		repo: balanceRepository,
+		repo:              balanceRepository,
+		historyRepository: historyRepository,
 	}
 }
 
@@ -77,11 +80,11 @@ func (s *balanceService) DecrementUserBalance(userID uint, amount float64) error
 	return s.repo.DecrementBalance(userID, amount)
 }
 
-func (s *balanceService) GetBalanceAtTime(userID uint) (*models.Balance, error) {
-	balance, err := s.repo.GetBalance(userID)
+func (s *balanceService) GetBalanceAtTime(userID uint, time time.Time) (*models.BalanceHistory, error) {
+	history, err := s.historyRepository.GetBalanceAtTime(userID, time)
 	if err != nil {
 		return nil, err
 	}
 
-	return balance, nil
+	return history, nil
 }
