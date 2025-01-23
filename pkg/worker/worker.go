@@ -12,8 +12,6 @@ type Pool struct {
 	waitGroup sync.WaitGroup
 }
 
-const defaultWorkers = 10
-
 var instance *Pool
 
 func GetPool() *Pool {

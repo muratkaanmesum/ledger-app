@@ -16,7 +16,7 @@ var (
 )
 
 type BalanceRepository interface {
-	GetBalance(userID uint, date *time.Time) (*models.Balance, error)
+	GetBalance(userID uint) (*models.Balance, error)
 	UpdateBalance(userID uint, amount float64) error
 	IncrementBalance(userID uint, amount float64) error
 	DecrementBalance(userID uint, amount float64) error
@@ -36,25 +36,15 @@ func NewBalanceRepository() BalanceRepository {
 	return instance
 }
 
-func (r *balanceRepository) GetBalance(userID uint, date *time.Time) (*models.Balance, error) {
+func (r *balanceRepository) GetBalance(userID uint) (*models.Balance, error) {
 	r.mu.RLock()
 	defer r.mu.RUnlock()
 
 	var balance models.Balance
-	query := db.DB.Where("user_id = ?", userID)
+	query := db.DB.Where("user_id = ?", userID).First(&balance)
 
-	if date != nil {
-		query = query.Where("last_updated_at <= ?", date).Order("last_updated_at DESC")
-	} else {
-		query = query.Order("last_updated_at DESC")
-	}
-
-	err := query.Preload("User").First(&balance).Error
-	if err != nil {
-		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
-		}
-		return nil, err
+	if query.Error != nil {
+		return nil, query.Error
 	}
 
 	return &balance, nil

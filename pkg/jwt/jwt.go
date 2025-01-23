@@ -3,6 +3,7 @@ package jwt
 import (
 	"errors"
 	"fmt"
+	"github.com/labstack/echo/v4"
 	"os"
 	"ptm/internal/models"
 	"time"
@@ -28,7 +29,6 @@ func GenerateJWT(user *models.User) (string, error) {
 		"username": user.Username,
 		"role":     user.Role,
 		"id":       user.ID,
-		"exp":      time.Now().Add(24 * time.Hour).Unix(),
 	}
 
 	token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
@@ -66,4 +66,8 @@ func ValidateJWT(tokenString string) (*CustomClaims, error) {
 	}
 
 	return claims, nil
+}
+
+func GetUser(c echo.Context) *CustomClaims {
+	return c.Get("user").(*CustomClaims)
 }

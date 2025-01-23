@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"fmt"
+	"gorm.io/gorm"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
 )
@@ -12,6 +13,7 @@ type UserService interface {
 	GetAllUsers(limit, offset int) ([]models.User, error)
 	GetUserById(id uint) (*models.User, error)
 	GetUserByUsername(username string) (*models.User, error)
+	Exists(userId uint) (bool, error)
 }
 
 type userService struct {
@@ -64,4 +66,15 @@ func (s *userService) GetUserByUsername(username string) (*models.User, error) {
 		return nil, fmt.Errorf("user not found with username %s: %w", username, err)
 	}
 	return user, nil
+}
+
+func (s *userService) Exists(userId uint) (bool, error) {
+	_, err := s.userRepo.GetUserByID(userId)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return false, nil
+		}
+		return false, fmt.Errorf("failed to check if user exists: %w", err)
+	}
+	return true, nil
 }

@@ -6,16 +6,16 @@ import (
 )
 
 type Transaction struct {
-	ID         uint    `gorm:"primaryKey"`
-	FromUserID uint    `gorm:"not null;index"`
-	ToUserID   uint    `gorm:"not null;index"`
-	Amount     float64 `gorm:"not null"`
-	Type       string  `gorm:"not null"`
-	Status     string  `gorm:"not null"`
-	CreatedAt  time.Time
+	ID         uint      `gorm:"primaryKey"`
+	FromUserID uint      `gorm:"not null;index"`
+	ToUserID   uint      `gorm:"not null;index"`
+	Amount     float64   `gorm:"not null"`
+	Type       string    `gorm:"not null"`
+	Status     string    `gorm:"not null"`
+	CreatedAt  time.Time `gorm:"autoCreateTime"`
 
-	FromUser User `gorm:"foreignKey:FromUserID;constraint:OnDelete:CASCADE"`
-	ToUser   User `gorm:"foreignKey:ToUserID;constraint:OnDelete:CASCADE"`
+	FromUser User `gorm:"foreignKey:FromUserID;constraint:OnDelete:CASCADE" json:"-"`
+	ToUser   User `gorm:"foreignKey:ToUserID;constraint:OnDelete:CASCADE" json:"-"`
 }
 type TransactionType string
 
@@ -33,6 +33,7 @@ const (
 const (
 	TransactionStatusPending   = "pending"
 	TransactionStatusCompleted = "completed"
+	TransactionStatusFailed    = "failed"
 )
 
 var validTransactionTypes = map[string]bool{"debit": true, "credit": true}

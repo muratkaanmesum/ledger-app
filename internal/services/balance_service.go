@@ -13,21 +13,22 @@ type BalanceService interface {
 	IncrementUserBalance(userID uint, amount float64) error
 	DecrementUserBalance(userID uint, amount float64) error
 	CreateBalance(user *models.User) (*models.Balance, error)
+	GetBalanceAtTime(userID uint, time time.Time) (*models.BalanceHistory, error)
 }
 type balanceService struct {
-	repo     repositories.BalanceRepository
-	userRepo repositories.UserRepository
+	repo              repositories.BalanceRepository
+	historyRepository repositories.BalanceHistoryRepository
 }
 
-func NewBalanceService(balanceRepository repositories.BalanceRepository, userRepository repositories.UserRepository) BalanceService {
+func NewBalanceService(balanceRepository repositories.BalanceRepository, historyRepository repositories.BalanceHistoryRepository) BalanceService {
 	return &balanceService{
-		repo:     balanceRepository,
-		userRepo: userRepository,
+		repo:              balanceRepository,
+		historyRepository: historyRepository,
 	}
 }
 
 func (s *balanceService) CreateBalance(user *models.User) (*models.Balance, error) {
-	exists, err := s.repo.GetBalance(user.ID, nil)
+	exists, err := s.repo.GetBalance(user.ID)
 	if exists != nil {
 		return nil, err
 	}
@@ -41,7 +42,7 @@ func (s *balanceService) CreateBalance(user *models.User) (*models.Balance, erro
 }
 
 func (s *balanceService) GetUserBalance(userID uint) (*models.Balance, error) {
-	balance, err := s.repo.GetBalance(userID, nil)
+	balance, err := s.repo.GetBalance(userID)
 	if err != nil {
 		return nil, err
 	}
@@ -55,28 +56,52 @@ func (s *balanceService) UpdateUserBalance(userID uint, amount float64) error {
 	if amount < 0 {
 		return errors.New("amount must be non-negative")
 	}
-	return s.repo.UpdateBalance(userID, amount)
+	if err := s.repo.UpdateBalance(userID, amount); err != nil {
+		return err
+	}
+	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (s *balanceService) IncrementUserBalance(userID uint, amount float64) error {
 	if amount <= 0 {
 		return errors.New("increment amount must be greater than zero")
 	}
-	return s.repo.IncrementBalance(userID, amount)
-}
 
+	if err := s.repo.IncrementBalance(userID, amount); err != nil {
+		return err
+	}
+
+	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
+		return err
+	}
+
+	return nil
+}
 func (s *balanceService) DecrementUserBalance(userID uint, amount float64) error {
 	if amount <= 0 {
 		return errors.New("decrement amount must be greater than zero")
 	}
-	return s.repo.DecrementBalance(userID, amount)
+
+	if err := s.repo.DecrementBalance(userID, amount); err != nil {
+		return err
+	}
+
+	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
+		return err
+	}
+
+	return nil
 }
 
-func (s *balanceService) GetBalanceAtTime(userID uint, date *time.Time) (*models.Balance, error) {
-	balance, err := s.repo.GetBalance(userID, date)
+func (s *balanceService) GetBalanceAtTime(userID uint, time time.Time) (*models.BalanceHistory, error) {
+	history, err := s.historyRepository.GetBalanceAtTime(userID, time)
 	if err != nil {
 		return nil, err
 	}
 
-	return balance, nil
+	return history, nil
 }
