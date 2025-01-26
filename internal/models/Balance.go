@@ -9,5 +9,5 @@ type Balance struct {
 	UserID        uint    `gorm:"not null"`   // Foreign key to the User table
 	Amount        float64 `gorm:"default:0.0"`
 	LastUpdatedAt time.Time
-	User          User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE"`
+	User          User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 }

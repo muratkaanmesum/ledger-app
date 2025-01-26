@@ -93,13 +93,13 @@ func createSpecificTransactions(users []models.User, transactionService services
 		}
 		receiverID := uint(receiver.ID)
 
-		if _, err := transactionService.CreateTransaction(senderID, receiverID, -amount, models.TransactionTypeDebit); err != nil {
+		if _, err := transactionService.CreateTransaction(senderID, receiverID, -amount, models.Debit); err != nil {
 			log.Printf("Failed to create send transaction for user %d: %v", senderID, err)
 		} else {
 			log.Printf("Created send transaction of %.2f from user %d to user %d", amount, senderID, receiverID)
 		}
 
-		if _, err := transactionService.CreateTransaction(receiverID, senderID, amount, models.TransactionTypeDebit); err != nil {
+		if _, err := transactionService.CreateTransaction(receiverID, senderID, amount, models.Debit); err != nil {
 			log.Printf("Failed to create receive transaction for user %d: %v", receiverID, err)
 		} else {
 			log.Printf("Created receive transaction of %.2f for user %d from user %d", amount, receiverID, senderID)

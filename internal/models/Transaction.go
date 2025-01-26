@@ -26,11 +26,6 @@ const (
 )
 
 const (
-	TransactionTypeDebit  = "debit"
-	TransactionTypeCredit = "credit"
-)
-
-const (
 	TransactionStatusPending   = "pending"
 	TransactionStatusCompleted = "completed"
 	TransactionStatusFailed    = "failed"
