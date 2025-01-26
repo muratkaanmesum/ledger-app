@@ -6,7 +6,6 @@ import (
 	"ptm/internal/di"
 	"ptm/internal/models"
 	"ptm/internal/services"
-	"ptm/internal/utils/customError"
 	"ptm/internal/utils/response"
 	"ptm/pkg/jwt"
 	"ptm/pkg/logger"
@@ -46,14 +45,12 @@ func (ac *authController) RegisterUser(c echo.Context) error {
 	logger.Logger.Info("Handling RegisterUser request")
 
 	if err := c.Bind(&req); err != nil {
-		return customError.New(customError.BadRequest, err)
+		return response.InternalServerError(c, "Couldn't parse request body")
 	}
-
-	logger.Logger.Debug("Request body parsed successfully", zap.String("username", req.Username), zap.String("email", req.Email))
 
 	if err := c.Validate(req); err != nil {
 		logger.Logger.Warn("Validation failed", zap.Error(err))
-		return customError.New(customError.BadRequest, err)
+		return response.UnprocessableEntity(c, "Validation failed")
 	}
 
 	user := &models.User{
@@ -65,7 +62,7 @@ func (ac *authController) RegisterUser(c echo.Context) error {
 
 	createdUser, err := ac.userService.RegisterUser(user)
 	if err != nil {
-		return customError.New(customError.InternalServerError, err)
+		return err
 	}
 
 	logger.Logger.Info("User registered successfully", zap.String("username", createdUser.Username))
@@ -76,27 +73,27 @@ func (ac *authController) AuthenticateUser(c echo.Context) error {
 	var req AuthenticateUserRequest
 
 	if err := c.Bind(&req); err != nil {
-		return customError.New(customError.InternalServerError, err)
+		return response.InternalServerError(c, "Couldn't parse request body")
 	}
 
 	logger.Logger.Debug("Request body parsed successfully", zap.String("username", req.Username))
 
 	if err := c.Validate(req); err != nil {
-		return customError.New(customError.BadRequest, err)
+		return response.UnprocessableEntity(c, "validation failed")
 	}
 
 	user, err := ac.userService.GetUserByUsername(req.Username)
 	if err != nil {
-		return customError.New(customError.NotFound, err)
+		return err
 	}
 
 	if err := user.VerifyUser(req.Password); err != nil {
-		return customError.New(customError.Forbidden, err)
+		return err
 	}
 
 	token, err := jwt.GenerateJWT(user)
 	if err != nil {
-		return customError.New(customError.InternalServerError, err)
+		return err
 	}
 
 	return response.Ok(c, "User authenticated successfully", map[string]interface{}{

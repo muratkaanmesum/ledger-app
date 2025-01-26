@@ -7,7 +7,7 @@ import (
 
 type TransactionService interface {
 	CreateTransaction(fromId, toId uint, amount float64, transactionType models.TransactionType) (*models.Transaction, error)
-	ListTransactions(userID uint, limit, offset int) ([]models.Transaction, error)
+	ListTransactions(userID uint, page, count uint) ([]models.Transaction, error)
 	UpdateTransactionState(transactionId uint, state models.TransactionType) error
 }
 
@@ -41,7 +41,7 @@ func (t *transactionService) UpdateTransactionState(transactionId uint, state mo
 		return err
 	}
 
-	transaction.Status = models.TransactionStatusPending
+	transaction.Status = string(state)
 	if err := t.repository.UpdateTransaction(transaction); err != nil {
 		return err
 	}
@@ -49,10 +49,10 @@ func (t *transactionService) UpdateTransactionState(transactionId uint, state mo
 	return nil
 }
 
-func (t *transactionService) ListTransactions(userID uint, limit, offset int) ([]models.Transaction, error) {
+func (t *transactionService) ListTransactions(userID uint, page, count uint) ([]models.Transaction, error) {
 	var transactions []models.Transaction
 
-	transactions, err := t.repository.GetAllTransactions(userID, limit, offset)
+	transactions, err := t.repository.GetAllTransactions(userID, page, count)
 
 	if err != nil {
 		return nil, err

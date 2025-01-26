@@ -1,7 +1,6 @@
 package controllers
 
 import (
-	"errors"
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"gorm.io/gorm"
@@ -9,7 +8,6 @@ import (
 	"ptm/internal/di"
 	"ptm/internal/models"
 	"ptm/internal/services"
-	"ptm/internal/utils/customError"
 	"ptm/internal/utils/response"
 	"ptm/pkg/jwt"
 	"ptm/pkg/logger"
@@ -50,6 +48,11 @@ type TransferRequest struct {
 	ToId   uint    `json:"to_id" validate:"required"`
 }
 
+type PaginationRequest struct {
+	Page  uint `json:"page"`
+	Count uint `json:"count"`
+}
+
 func (tc *transactionController) HandleCredit(c echo.Context) error {
 	var (
 		req  creditRequest
@@ -57,18 +60,17 @@ func (tc *transactionController) HandleCredit(c echo.Context) error {
 	)
 
 	if err := c.Bind(&req); err != nil {
-		return customError.New(customError.InternalServerError, err)
+		return response.InternalServerError(c, "Error binding request", err)
 	}
 
 	if err := c.Validate(req); err != nil {
-		return customError.New(customError.BadRequest, err)
+		return response.UnprocessableEntity(c, "Validation error", err)
 	}
 
 	tc.pool.AddTask(func() {
 		createdTransaction, err := tc.transactionService.CreateTransaction(
 			user.Id, user.Id, req.Amount, models.Credit,
 		)
-
 		if err != nil {
 		}
 
@@ -77,11 +79,9 @@ func (tc *transactionController) HandleCredit(c echo.Context) error {
 			//return customError.New(customError.InternalServerError, err)
 		}
 
-		defer HandleTransactionPanic(db)
+		defer tc.HandleTransactionPanic(db, createdTransaction)
 		if err := tc.balanceService.IncrementUserBalance(user.Id, req.Amount); err != nil {
-			if err := tc.transactionService.UpdateTransactionState(createdTransaction.ID, models.TransactionStatusFailed); err != nil {
-				logger.Logger.Error("failed to update transaction status", zap.Error(err))
-			}
+
 		}
 
 		if err != nil {
@@ -103,7 +103,7 @@ func (tc *transactionController) HandleCredit(c echo.Context) error {
 func (tc *transactionController) HandleDebit(c echo.Context) error {
 	var (
 		req  creditRequest
-		user = c.Get("user").(*jwt.CustomClaims)
+		user = jwt.GetUser(c)
 	)
 	if err := c.Bind(&req); err != nil {
 		return response.InternalServerError(c, "Error binding request", err)
@@ -118,16 +118,16 @@ func (tc *transactionController) HandleDebit(c echo.Context) error {
 		if err != nil {
 			//return response.InternalServerError(c, "Error starting transaction", err)
 		}
+		createdTransaction, err := tc.transactionService.CreateTransaction(
+			user.Id, user.Id, req.Amount, models.Debit,
+		)
 
-		defer HandleTransactionPanic(db)
+		defer tc.HandleTransactionPanic(db, createdTransaction)
 
 		if err := tc.balanceService.DecrementUserBalance(user.Id, req.Amount); err != nil {
 			logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
 		}
 
-		_, err = tc.transactionService.CreateTransaction(
-			user.Id, user.Id, req.Amount, models.Debit,
-		)
 		if err != nil {
 			logger.Logger.Error("Error creating transaction", zap.Error(err))
 		}
@@ -145,25 +145,36 @@ func (tc *transactionController) HandleDebit(c echo.Context) error {
 }
 
 func (tc *transactionController) GetTransactions(c echo.Context) error {
-	user := jwt.GetUser(c)
+	var (
+		req  PaginationRequest
+		user = jwt.GetUser(c)
+	)
 
-	transactions, err := tc.transactionService.ListTransactions(user.Id, 10, 0)
+	if err := c.Bind(&req); err != nil {
+		return response.InternalServerError(c, "Error binding request", err)
+	}
+
+	if err := c.Validate(req); err != nil {
+		return response.UnprocessableEntity(c, "Validation error", err)
+	}
+
+	transactions, err := tc.transactionService.ListTransactions(user.Id, req.Page, req.Count)
 
 	if err != nil {
-		return customError.New(customError.InternalServerError, err)
+		return err
 	}
 
 	return response.Ok(c, "Successfully Fetched", transactions)
 }
 
-func HandleTransactionPanic(db *gorm.DB) {
+func (tc *transactionController) HandleTransactionPanic(db *gorm.DB, createdTransaction *models.Transaction) {
 	if p := recover(); p != nil {
 		if err := transaction.RollbackTransaction(db); err != nil {
 			logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", p))
+			if err := tc.transactionService.UpdateTransactionState(createdTransaction.ID, models.TransactionStatusFailed); err != nil {
+				logger.Logger.Error("failed to update transaction status", zap.Error(err))
+			}
 		}
-		logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", p))
-	} else if err := transaction.RollbackTransaction(db); err != nil {
-		logger.Logger.Error("Error occurred during transaction, rolling back", zap.Error(err))
 	}
 }
 
@@ -172,21 +183,21 @@ func (tc *transactionController) HandleTransfer(c echo.Context) error {
 	var req TransferRequest
 
 	if err := c.Bind(&req); err != nil {
-		return customError.New(customError.InternalServerError)
+		return response.InternalServerError(c, "Error binding request", err)
 	}
 
 	if err := c.Validate(req); err != nil {
-		return customError.New(customError.BadRequest, err)
+		return response.UnprocessableEntity(c, "Validation error", err)
 	}
 
 	exists, err := tc.userService.Exists(user.Id)
 
 	if err != nil {
-		return customError.New(customError.InternalServerError, err)
+		return err
 	}
 
 	if !exists {
-		return customError.New(customError.BadRequest, errors.New("user not found"))
+		return response.BadRequest(c, "User does not exist")
 	}
 
 	tc.pool.AddTask(func() {
@@ -195,7 +206,11 @@ func (tc *transactionController) HandleTransfer(c echo.Context) error {
 			//return response.InternalServerError(c, "Error starting transaction", err)
 		}
 
-		defer HandleTransactionPanic(db)
+		createdTransaction, err := tc.transactionService.CreateTransaction(
+			user.Id, req.ToId, req.Amount, models.Transfer,
+		)
+
+		defer tc.HandleTransactionPanic(db, createdTransaction)
 
 		if err := tc.balanceService.DecrementUserBalance(user.Id, req.Amount); err != nil {
 			logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
@@ -205,9 +220,6 @@ func (tc *transactionController) HandleTransfer(c echo.Context) error {
 			logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
 		}
 
-		_, err = tc.transactionService.CreateTransaction(
-			user.Id, req.ToId, req.Amount, models.Transfer,
-		)
 		if err != nil {
 			logger.Logger.Error("Error creating transaction", zap.Error(err))
 		}

@@ -8,21 +8,25 @@ import (
 	"github.com/labstack/echo/v4"
 )
 
-func RoleBasedAuthorization(requiredRoles []string) echo.MiddlewareFunc {
+type Role string
+
+const (
+	Admin Role = "admin"
+	User  Role = "user"
+)
+
+func RoleBasedAuthorization(requiredRoles ...Role) echo.MiddlewareFunc {
 	return func(next echo.HandlerFunc) echo.HandlerFunc {
 		return func(c echo.Context) error {
-			userClaims, ok := c.Get("user").(*jwt.CustomClaims)
-			if !ok {
-				return response.Forbidden(c, "User data not found in context", nil)
-			}
+			userClaims := jwt.GetUser(c)
 
 			for _, role := range requiredRoles {
-				if userClaims.Role == role {
+				if userClaims.Role == string(role) {
 					return next(c)
 				}
 			}
 
-			return response.Forbidden(c, "You are not authorized to access this resource", nil)
+			return response.Forbidden(c, "You are not authorized to access this resource")
 		}
 	}
 }

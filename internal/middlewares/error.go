@@ -10,12 +10,12 @@ import (
 )
 
 var errorMessages = map[int]string{
-	400: "Bad Request. Please check your input.",
-	401: "Unauthorized. Please provide valid credentials.",
-	403: "Forbidden. You don't have permission to access this resource.",
-	404: "Not Found. The requested resource does not exist.",
-	500: "Internal Server Error. Please try again later.",
-	503: "Service Unavailable. Please try again later.",
+	http.StatusBadRequest:          "Invalid request. Please check your input.",
+	http.StatusUnauthorized:        "Authentication required.",
+	http.StatusForbidden:           "Access forbidden.",
+	http.StatusNotFound:            "Resource not found.",
+	http.StatusInternalServerError: "An unexpected error occurred.",
+	http.StatusServiceUnavailable:  "Service unavailable. Please try again later.",
 }
 
 func ErrorMiddleware() echo.MiddlewareFunc {
@@ -24,30 +24,35 @@ func ErrorMiddleware() echo.MiddlewareFunc {
 			err := next(c)
 			if err != nil {
 				var customErr *customError.Error
-				if errors.As(err, &customErr) {
-					message := getErrorMessage(int(customErr.Code))
-					logger.Logger.Error("Error Message",
-						zap.Int("code", int(customErr.Code)),
-						zap.String("message", message),
-					)
-
-					return c.JSON(int(customErr.Code), map[string]any{
-						"status":  customErr.Code,
-						"message": message,
-					})
+				if ok := errors.As(err, &customErr); ok {
+					return handleError(c, customErr)
 				}
 
-				message := getErrorMessage(500)
-
-				logger.Logger.Error("Generic error encountered", zap.String("message", message))
-				return c.JSON(http.StatusInternalServerError, map[string]any{
+				logger.Logger.Error("Unhandled error",
+					zap.String("error", err.Error()),
+				)
+				return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 					"status":  http.StatusInternalServerError,
-					"message": message,
+					"message": getErrorMessage(http.StatusInternalServerError),
 				})
 			}
 			return nil
 		}
 	}
+}
+
+func handleError(c echo.Context, customErr *customError.Error) error {
+	logger.Logger.Error("Custom error occurred",
+		zap.Int("code", int(customErr.Code)),
+		zap.String("message", customErr.Message),
+		zap.Error(customErr.Details),
+	)
+
+	return c.JSON(int(customErr.Code), map[string]interface{}{
+		"status":  customErr.Code,
+		"message": customErr.Message,
+		"details": customErr.Details,
+	})
 }
 
 func getErrorMessage(statusCode int) string {

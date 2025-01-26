@@ -3,6 +3,7 @@ package models
 import (
 	"errors"
 	"golang.org/x/crypto/bcrypt"
+	"ptm/internal/utils/customError"
 	"time"
 )
 
@@ -18,7 +19,7 @@ type User struct {
 
 func (u *User) VerifyUser(password string) error {
 	if err := bcrypt.CompareHashAndPassword([]byte(u.PasswordHash), []byte(password)); err != nil {
-		return err
+		return customError.Forbidden("The password you provided is incorrect")
 	}
 	return nil
 }
@@ -26,7 +27,7 @@ func (u *User) VerifyUser(password string) error {
 func (u *User) HashPassword() error {
 	bytes, err := bcrypt.GenerateFromPassword([]byte(u.PasswordHash), bcrypt.MinCost)
 	if err != nil {
-		return err
+		return customError.InternalServerError("Error hashing password")
 	}
 
 	u.PasswordHash = string(bytes)

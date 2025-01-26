@@ -6,6 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"os"
 	"ptm/internal/models"
+	"ptm/internal/utils/customError"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"
@@ -47,8 +48,9 @@ func ValidateJWT(tokenString string) (*CustomClaims, error) {
 	}
 
 	token, err := jwt.ParseWithClaims(tokenString, &CustomClaims{}, func(token *jwt.Token) (interface{}, error) {
+
 		if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
-			return nil, fmt.Errorf("unexpected signing method: %v", token.Header["alg"])
+			return nil, customError.InternalServerError("Unexpected signing method")
 		}
 		return []byte(secret), nil
 	})
@@ -58,11 +60,11 @@ func ValidateJWT(tokenString string) (*CustomClaims, error) {
 
 	claims, ok := token.Claims.(*CustomClaims)
 	if !ok || !token.Valid {
-		return nil, errors.New("invalid token")
+		return nil, customError.Forbidden("Invalid token")
 	}
 
 	if claims.ExpiresAt != nil && claims.ExpiresAt.Time.Before(time.Now()) {
-		return nil, errors.New("token has expired")
+		return nil, customError.Forbidden("Token is expired")
 	}
 
 	return claims, nil

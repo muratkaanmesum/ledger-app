@@ -105,6 +105,18 @@ func Accepted(c echo.Context, message string, data ...any) error {
 	})
 }
 
+func UnprocessableEntity(c echo.Context, message string, data ...any) error {
+	var firstData any
+	if len(data) > 0 && data[0] != nil {
+		firstData = data[0]
+	}
+
+	return c.JSON(http.StatusUnprocessableEntity, Response{
+		Status:  http.StatusUnprocessableEntity,
+		Message: message,
+		Error:   firstData,
+	})
+}
 func formatError(err error) any {
 	if err == nil {
 		return nil
