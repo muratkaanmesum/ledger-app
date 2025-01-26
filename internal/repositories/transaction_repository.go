@@ -10,7 +10,7 @@ type transactionRepository struct{}
 type TransactionRepository interface {
 	CreateTransaction(transaction *models.Transaction) error
 	GetTransactionByID(id uint) (*models.Transaction, error)
-	GetAllTransactions(userId, page, pageSize uint) ([]models.Transaction, error)
+	GetAllTransactions(userId, page, count uint) ([]models.Transaction, error)
 	UpdateTransaction(transaction *models.Transaction) error
 	DeleteTransaction(id uint) error
 }
