@@ -1,6 +1,9 @@
 package customError
 
-import "fmt"
+import (
+	"errors"
+	"fmt"
+)
 
 type HTTPStatusCode int
 
@@ -49,4 +52,17 @@ func InternalServerError(message string, details ...error) *Error {
 
 func ServiceUnavailable(message string, details ...error) *Error {
 	return New(503, message, details...)
+}
+
+func Parse(err error) *Error {
+	if err == nil {
+		return nil
+	}
+
+	var customErr *Error
+	if errors.As(err, &customErr) {
+		return customErr
+	}
+
+	return InternalServerError("An unexpected error occurred", err)
 }

@@ -1,12 +1,15 @@
 package seeder
 
 import (
+	"fmt"
 	"log"
 	"math/rand"
 	"ptm/internal/db"
 	"ptm/internal/di"
 	"ptm/internal/models"
 	"ptm/internal/services"
+	"ptm/internal/utils/customError"
+	"ptm/pkg/logger"
 )
 
 type userSeedData struct {
@@ -37,9 +40,14 @@ func SeedUsers() {
 			Email:        user.Email,
 			PasswordHash: user.Password,
 		})
-
+		fmt.Println(createdUser, err)
 		if err != nil {
-			log.Printf("Failed to register user %s. Error: %v. Skipping seed.", user.Username, err)
+			parsedError := customError.Parse(err)
+
+			if parsedError.Code != 404 {
+				logger.Logger.Fatal("Error When Creating Seed Users")
+				break
+			}
 		}
 
 		balanceService := di.Resolve[services.BalanceService]()

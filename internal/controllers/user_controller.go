@@ -73,3 +73,19 @@ func (uc *userController) UpdateUser(c echo.Context) error {
 
 	return response.Ok(c, "Successfully Updated", updatedUser)
 }
+
+func (uc *userController) DeleteUser(c echo.Context) error {
+	idString := c.Param("id")
+
+	num, err := strconv.Atoi(idString)
+
+	if err != nil {
+		return response.BadRequest(c, "Error converting string to integer", err)
+	}
+
+	if err := uc.userService.DeleteUser(uint(num)); err != nil {
+		return err
+	}
+
+	return response.Ok(c, "Successfully Deleted", nil)
+}

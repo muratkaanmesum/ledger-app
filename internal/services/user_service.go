@@ -16,6 +16,7 @@ type UserService interface {
 	GetUserByUsername(username string) (*models.User, error)
 	Exists(userId uint) (bool, error)
 	UpdateUser(id uint, user *dtos.UpdateUserRequest) (*models.User, error)
+	DeleteUser(userId uint) error
 }
 
 type userService struct {
