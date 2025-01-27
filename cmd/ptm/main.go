@@ -12,6 +12,7 @@ import (
 	"ptm/internal/db/seeder"
 	"ptm/internal/di"
 	"ptm/internal/routes"
+	"ptm/pkg/counter"
 	"ptm/pkg/logger"
 	"ptm/pkg/validator"
 	"ptm/pkg/worker"
@@ -32,6 +33,7 @@ func main() {
 	db.InitDB()
 	redis.InitRedis()
 	di.InitDiContainer()
+	counter.InitStats()
 	worker.InitWorkerPool(10)
 
 	e := echo.New()

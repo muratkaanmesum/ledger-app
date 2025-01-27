@@ -15,10 +15,8 @@ func InitRoutes(e *echo.Echo) {
 	e.Use(middleware.Recover())
 	e.Use(middlewares.JWTAuthenticate())
 	e.Use(middlewares.ErrorMiddleware())
+	e.Use(middlewares.PerformanceMiddleware())
 
-	e.GET("/health", func(c echo.Context) error {
-		return c.JSON(200, map[string]string{"status": "OK"})
-	})
 	e.POST("/seeder", func(c echo.Context) error {
 		seeder.SeedUsers()
 		return response.Ok(c, "OK")

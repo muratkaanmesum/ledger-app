@@ -9,8 +9,11 @@ import (
 func RegisterUserRoutes(e *echo.Group) {
 	c := controllers.NewUserController()
 
-	userRoute := e.Group("/users")
+	route := e.Group("/users")
+	route.Use(middlewares.RoleBasedAuthorization("admin"))
 
-	userRoute.GET("/:id", c.GetUserById)
-	userRoute.GET("/", c.GetAllUsers, middlewares.RoleBasedAuthorization("admin"))
+	route.GET("/:id", c.GetUserById)
+	route.GET("/", c.GetAllUsers)
+	route.PUT("/:id", c.UpdateUser)
+
 }
