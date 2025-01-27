@@ -29,10 +29,12 @@ func NewUserController() UserController {
 }
 
 func (uc *userController) GetAllUsers(c echo.Context) error {
-	users, err := uc.userService.GetAllUsers(10, 0)
+	users, err := uc.userService.GetAllUsers(1, 10)
+
 	if err != nil {
 		return err
 	}
+
 	return response.Ok(c, "Successfully Fetched", users)
 }
 

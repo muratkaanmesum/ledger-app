@@ -5,7 +5,6 @@ import (
 	"gorm.io/gorm"
 	"ptm/internal/db"
 	"ptm/internal/models"
-	"ptm/internal/utils/customError"
 )
 
 type UserRepository interface {
@@ -41,7 +40,7 @@ func (r *userRepository) GetUserByUsername(username string) (*models.User, error
 	err := db.DB.Where("username = ?", username).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, customError.NotFound("user not found with Username")
+			return nil, nil
 		}
 		return nil, err
 	}

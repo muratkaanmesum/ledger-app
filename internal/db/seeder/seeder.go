@@ -1,7 +1,6 @@
 package seeder
 
 import (
-	"fmt"
 	"log"
 	"math/rand"
 	"ptm/internal/db"
@@ -40,12 +39,11 @@ func SeedUsers() {
 			Email:        user.Email,
 			PasswordHash: user.Password,
 		})
-		fmt.Println(createdUser, err)
-		if err != nil {
-			parsedError := customError.Parse(err)
 
-			if parsedError.Code != 404 {
-				logger.Logger.Fatal("Error When Creating Seed Users")
+		parsedError := customError.Parse(err)
+		if err != nil {
+			if parsedError.Code != 500 {
+				logger.Logger.Debug("Error When Creating Seed Users")
 				break
 			}
 		}

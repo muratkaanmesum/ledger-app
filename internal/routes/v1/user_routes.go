@@ -13,7 +13,6 @@ func RegisterUserRoutes(e *echo.Group) {
 	route.Use(middlewares.RoleBasedAuthorization("admin"))
 
 	route.GET("/:id", c.GetUserById)
-	route.GET("/", c.GetAllUsers)
 	route.PUT("/:id", c.UpdateUser)
-
+	route.GET("/", c.GetAllUsers)
 }

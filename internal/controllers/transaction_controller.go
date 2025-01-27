@@ -6,6 +6,7 @@ import (
 	"gorm.io/gorm"
 	"ptm/internal/db/transaction"
 	"ptm/internal/di"
+	"ptm/internal/dtos"
 	"ptm/internal/models"
 	"ptm/internal/services"
 	"ptm/internal/utils/response"
@@ -46,11 +47,6 @@ type creditRequest struct {
 type TransferRequest struct {
 	Amount float64 `json:"amount" validate:"required"`
 	ToId   uint    `json:"to_id" validate:"required"`
-}
-
-type PaginationRequest struct {
-	Page  uint `json:"page"`
-	Count uint `json:"count"`
 }
 
 func (tc *transactionController) HandleCredit(c echo.Context) error {
@@ -146,7 +142,7 @@ func (tc *transactionController) HandleDebit(c echo.Context) error {
 
 func (tc *transactionController) GetTransactions(c echo.Context) error {
 	var (
-		req  PaginationRequest
+		req  dtos.PaginationRequest
 		user = jwt.GetUser(c)
 	)
 

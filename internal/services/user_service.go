@@ -32,7 +32,6 @@ func NewUserService(userRepository repositories.UserRepository) UserService {
 
 func (s *userService) RegisterUser(user *models.User) (*models.User, error) {
 	existingUser, err := s.userRepo.GetUserByUsername(user.Username)
-
 	if err != nil {
 		return nil, err
 	}
