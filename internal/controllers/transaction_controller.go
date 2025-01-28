@@ -9,10 +9,12 @@ import (
 	"ptm/internal/dtos"
 	"ptm/internal/models"
 	"ptm/internal/services"
-	"ptm/internal/utils/response"
 	"ptm/pkg/jwt"
 	"ptm/pkg/logger"
+	"ptm/pkg/utils/customError"
+	"ptm/pkg/utils/response"
 	"ptm/pkg/worker"
+	"strconv"
 )
 
 type TransactionController interface {
@@ -75,7 +77,7 @@ func (tc *transactionController) HandleCredit(c echo.Context) error {
 			//return customError.New(customError.InternalServerError, err)
 		}
 
-		defer tc.HandleTransactionPanic(db, createdTransaction)
+		defer tc.handleTransactionPanic(db, createdTransaction)
 		if err := tc.balanceService.IncrementUserBalance(user.Id, req.Amount); err != nil {
 
 		}
@@ -118,7 +120,7 @@ func (tc *transactionController) HandleDebit(c echo.Context) error {
 			user.Id, user.Id, req.Amount, models.Debit,
 		)
 
-		defer tc.HandleTransactionPanic(db, createdTransaction)
+		defer tc.handleTransactionPanic(db, createdTransaction)
 
 		if err := tc.balanceService.DecrementUserBalance(user.Id, req.Amount); err != nil {
 			logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
@@ -145,7 +147,6 @@ func (tc *transactionController) GetTransactions(c echo.Context) error {
 		req  dtos.PaginationRequest
 		user = jwt.GetUser(c)
 	)
-
 	if err := c.Bind(&req); err != nil {
 		return response.InternalServerError(c, "Error binding request", err)
 	}
@@ -154,7 +155,18 @@ func (tc *transactionController) GetTransactions(c echo.Context) error {
 		return response.UnprocessableEntity(c, "Validation error", err)
 	}
 
-	transactions, err := tc.transactionService.ListTransactions(user.Id, req.Page, req.Count)
+	failedParam := c.QueryParam("failed")
+
+	if failedParam == "" {
+		failedParam = "true"
+	}
+
+	failed, err := strconv.ParseBool(failedParam)
+
+	if err != nil {
+		return customError.BadRequest("failed", err)
+	}
+	transactions, err := tc.transactionService.ListTransactions(user.Id, req.Page, req.Count, failed)
 
 	if err != nil {
 		return err
@@ -163,7 +175,7 @@ func (tc *transactionController) GetTransactions(c echo.Context) error {
 	return response.Ok(c, "Successfully Fetched", transactions)
 }
 
-func (tc *transactionController) HandleTransactionPanic(db *gorm.DB, createdTransaction *models.Transaction) {
+func (tc *transactionController) handleTransactionPanic(db *gorm.DB, createdTransaction *models.Transaction) {
 	if p := recover(); p != nil {
 		if err := transaction.RollbackTransaction(db); err != nil {
 			logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", p))
@@ -206,7 +218,7 @@ func (tc *transactionController) HandleTransfer(c echo.Context) error {
 			user.Id, req.ToId, req.Amount, models.Transfer,
 		)
 
-		defer tc.HandleTransactionPanic(db, createdTransaction)
+		defer tc.handleTransactionPanic(db, createdTransaction)
 
 		if err := tc.balanceService.DecrementUserBalance(user.Id, req.Amount); err != nil {
 			logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
@@ -230,4 +242,20 @@ func (tc *transactionController) HandleTransfer(c echo.Context) error {
 	})
 
 	return response.Accepted(c, "Transaction Accepted")
+}
+
+func (tc *transactionController) GetById(c echo.Context) error {
+
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return response.BadRequest(c, "Invalid id")
+	}
+
+	returnedTransaction, err := tc.transactionService.GetTransactionById(uint(id))
+
+	if err != nil {
+		return err
+	}
+
+	return response.Ok(c, "Successful", returnedTransaction)
 }

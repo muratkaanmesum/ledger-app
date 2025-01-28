@@ -8,7 +8,7 @@ import (
 	"ptm/internal/db/seeder"
 	"ptm/internal/middlewares"
 	v1 "ptm/internal/routes/v1"
-	"ptm/internal/utils/response"
+	"ptm/pkg/utils/response"
 	"time"
 )
 

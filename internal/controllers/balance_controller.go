@@ -4,8 +4,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"ptm/internal/di"
 	"ptm/internal/services"
-	"ptm/internal/utils/response"
 	"ptm/pkg/jwt"
+	"ptm/pkg/utils/response"
 	"time"
 )
 

@@ -6,9 +6,9 @@ import (
 	"ptm/internal/di"
 	"ptm/internal/models"
 	"ptm/internal/services"
-	"ptm/internal/utils/response"
 	"ptm/pkg/jwt"
 	"ptm/pkg/logger"
+	"ptm/pkg/utils/response"
 )
 
 type AuthController interface {

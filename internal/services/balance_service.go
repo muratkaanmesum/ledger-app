@@ -4,7 +4,7 @@ import (
 	"errors"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
-	"ptm/internal/utils/customError"
+	"ptm/pkg/utils/customError"
 	"time"
 )
 

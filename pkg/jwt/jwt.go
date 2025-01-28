@@ -6,7 +6,7 @@ import (
 	"github.com/labstack/echo/v4"
 	"os"
 	"ptm/internal/models"
-	"ptm/internal/utils/customError"
+	"ptm/pkg/utils/customError"
 	"time"
 
 	"github.com/golang-jwt/jwt/v4"

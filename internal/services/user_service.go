@@ -6,7 +6,7 @@ import (
 	"ptm/internal/dtos"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
-	"ptm/internal/utils/customError"
+	"ptm/pkg/utils/customError"
 )
 
 type UserService interface {
