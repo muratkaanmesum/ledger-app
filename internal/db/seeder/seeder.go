@@ -7,6 +7,8 @@ import (
 	"ptm/internal/di"
 	"ptm/internal/models"
 	"ptm/internal/services"
+	"ptm/internal/utils/customError"
+	"ptm/pkg/logger"
 )
 
 type userSeedData struct {
@@ -38,8 +40,12 @@ func SeedUsers() {
 			PasswordHash: user.Password,
 		})
 
+		parsedError := customError.Parse(err)
 		if err != nil {
-			log.Printf("Failed to register user %s. Error: %v. Skipping seed.", user.Username, err)
+			if parsedError.Code != 500 {
+				logger.Logger.Debug("Error When Creating Seed Users")
+				break
+			}
 		}
 
 		balanceService := di.Resolve[services.BalanceService]()

@@ -53,11 +53,15 @@ func (ac *authController) RegisterUser(c echo.Context) error {
 		return response.UnprocessableEntity(c, "Validation failed")
 	}
 
-	user := &models.User{
-		Username:     req.Username,
-		Email:        req.Email,
-		Role:         req.Role,
-		PasswordHash: req.Password,
+	user, err := models.NewUser(
+		req.Username,
+		req.Email,
+		req.Password,
+		req.Role,
+	)
+
+	if err != nil {
+		return err
 	}
 
 	createdUser, err := ac.userService.RegisterUser(user)

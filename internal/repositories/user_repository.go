@@ -2,7 +2,6 @@ package repositories
 
 import (
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 	"ptm/internal/db"
 	"ptm/internal/models"
@@ -14,7 +13,7 @@ type UserRepository interface {
 	GetUserByUsername(username string) (*models.User, error)
 	UpdateUser(user *models.User) error
 	DeleteUser(id uint) error
-	GetUsers(limit int, offset int) ([]models.User, error)
+	GetUsers(page, count uint) ([]models.User, error)
 }
 
 type userRepository struct{}
@@ -41,7 +40,7 @@ func (r *userRepository) GetUserByUsername(username string) (*models.User, error
 	err := db.DB.Where("username = ?", username).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("user not found with username %s: %w", username, err)
+			return nil, nil
 		}
 		return nil, err
 	}
@@ -56,20 +55,14 @@ func (r *userRepository) DeleteUser(id uint) error {
 	return db.DB.Delete(&models.User{}, id).Error
 }
 
-func (r *userRepository) GetUsers(limit int, offset int) ([]models.User, error) {
+func (r *userRepository) GetUsers(page, count uint) ([]models.User, error) {
 	var users []models.User
+	offset := (page - 1) * count
 
-	query := db.DB
-	if limit > 0 {
-		query = query.Limit(limit)
-	}
-	if offset > 0 {
-		query = query.Offset(offset)
-	}
-
-	err := query.Find(&users).Error
+	err := db.DB.Limit(int(count)).Offset(int(offset)).Find(&users).Error
 	if err != nil {
 		return nil, err
 	}
+
 	return users, nil
 }

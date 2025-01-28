@@ -3,6 +3,7 @@ package services
 import (
 	"errors"
 	"gorm.io/gorm"
+	"ptm/internal/dtos"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
 	"ptm/internal/utils/customError"
@@ -10,10 +11,12 @@ import (
 
 type UserService interface {
 	RegisterUser(user *models.User) (*models.User, error)
-	GetAllUsers(limit, offset int) ([]models.User, error)
+	GetAllUsers(page, count uint) ([]models.User, error)
 	GetUserById(id uint) (*models.User, error)
 	GetUserByUsername(username string) (*models.User, error)
 	Exists(userId uint) (bool, error)
+	UpdateUser(id uint, user *dtos.UpdateUserRequest) (*models.User, error)
+	DeleteUser(userId uint) error
 }
 
 type userService struct {
@@ -29,7 +32,6 @@ func NewUserService(userRepository repositories.UserRepository) UserService {
 
 func (s *userService) RegisterUser(user *models.User) (*models.User, error) {
 	existingUser, err := s.userRepo.GetUserByUsername(user.Username)
-
 	if err != nil {
 		return nil, err
 	}
@@ -48,8 +50,8 @@ func (s *userService) RegisterUser(user *models.User) (*models.User, error) {
 	return user, nil
 }
 
-func (s *userService) GetAllUsers(limit, offset int) ([]models.User, error) {
-	users, err := s.userRepo.GetUsers(limit, offset)
+func (s *userService) GetAllUsers(page, count uint) ([]models.User, error) {
+	users, err := s.userRepo.GetUsers(page, count)
 	if err != nil {
 		return nil, customError.InternalServerError("failed to get users")
 	}
@@ -81,4 +83,33 @@ func (s *userService) Exists(userId uint) (bool, error) {
 		return false, customError.InternalServerError("failed to get user")
 	}
 	return true, nil
+}
+
+func (s *userService) DeleteUser(userId uint) error {
+	if err := s.userRepo.DeleteUser(userId); err != nil {
+		return err
+	}
+
+	return nil
+}
+
+func (s *userService) UpdateUser(id uint, user *dtos.UpdateUserRequest) (*models.User, error) {
+	existingUser, err := s.userRepo.GetUserByID(id)
+	if err != nil {
+		return nil, err
+	}
+	existingUser.Username = user.Username
+	existingUser.Email = user.Email
+
+	existingUser.PasswordHash = user.Password
+
+	if err := existingUser.HashPassword(); err != nil {
+		return nil, customError.InternalServerError("failed to hash password")
+	}
+
+	if err := s.userRepo.UpdateUser(existingUser); err != nil {
+		return nil, customError.InternalServerError("Failed to update user")
+	}
+
+	return existingUser, nil
 }

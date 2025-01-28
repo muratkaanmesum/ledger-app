@@ -31,6 +31,7 @@ func ErrorMiddleware() echo.MiddlewareFunc {
 				logger.Logger.Error("Unhandled error",
 					zap.String("error", err.Error()),
 				)
+
 				return c.JSON(http.StatusInternalServerError, map[string]interface{}{
 					"status":  http.StatusInternalServerError,
 					"message": getErrorMessage(http.StatusInternalServerError),
