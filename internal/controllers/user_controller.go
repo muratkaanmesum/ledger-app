@@ -4,7 +4,7 @@ import (
 	"ptm/internal/di"
 	"ptm/internal/dtos"
 	"ptm/internal/services"
-	"ptm/internal/utils/response"
+	"ptm/pkg/utils/response"
 	"strconv"
 
 	"github.com/labstack/echo/v4"

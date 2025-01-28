@@ -3,7 +3,7 @@ package models
 import (
 	"errors"
 	"golang.org/x/crypto/bcrypt"
-	"ptm/internal/utils/customError"
+	"ptm/pkg/utils/customError"
 	"time"
 )
 

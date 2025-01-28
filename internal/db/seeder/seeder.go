@@ -7,8 +7,8 @@ import (
 	"ptm/internal/di"
 	"ptm/internal/models"
 	"ptm/internal/services"
-	"ptm/internal/utils/customError"
 	"ptm/pkg/logger"
+	"ptm/pkg/utils/customError"
 )
 
 type userSeedData struct {

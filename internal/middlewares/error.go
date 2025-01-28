@@ -5,8 +5,8 @@ import (
 	"github.com/labstack/echo/v4"
 	"go.uber.org/zap"
 	"net/http"
-	"ptm/internal/utils/customError"
 	"ptm/pkg/logger"
+	"ptm/pkg/utils/customError"
 )
 
 var errorMessages = map[int]string{
@@ -32,10 +32,7 @@ func ErrorMiddleware() echo.MiddlewareFunc {
 					zap.String("error", err.Error()),
 				)
 
-				return c.JSON(http.StatusInternalServerError, map[string]interface{}{
-					"status":  http.StatusInternalServerError,
-					"message": getErrorMessage(http.StatusInternalServerError),
-				})
+				return err
 			}
 			return nil
 		}
