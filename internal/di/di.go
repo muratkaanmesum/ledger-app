@@ -78,6 +78,7 @@ func registerServices(container *Container) {
 	balanceService := services.NewBalanceService(
 		Resolve[repositories.BalanceRepository](),
 		Resolve[repositories.BalanceHistoryRepository](),
+		Resolve[services.AuditLogService](),
 	)
 
 	transactionService := services.NewTransactionService(
