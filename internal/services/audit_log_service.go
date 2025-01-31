@@ -6,6 +6,9 @@ import (
 )
 
 type AuditLogService interface {
+	CreateLog(entityType, action string, entityId uint) (*models.AuditLog, error)
+	FindById(id uint) (*models.AuditLog, error)
+	GetModelLogs(entityType string, entityId uint) ([]models.AuditLog, error)
 }
 
 type auditLogService struct {
