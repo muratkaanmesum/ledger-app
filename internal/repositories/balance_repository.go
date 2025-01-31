@@ -17,9 +17,9 @@ var (
 
 type BalanceRepository interface {
 	GetBalance(userID uint) (*models.Balance, error)
-	UpdateBalance(userID uint, amount float64) error
-	IncrementBalance(userID uint, amount float64) error
-	DecrementBalance(userID uint, amount float64) error
+	UpdateBalance(userID uint, amount float64) (*models.Balance, error)
+	IncrementBalance(userID uint, amount float64) (*models.Balance, error)
+	DecrementBalance(userID uint, amount float64) (*models.Balance, error)
 	CreateBalance(userID uint, amount float64) (*models.Balance, error)
 }
 
@@ -50,7 +50,7 @@ func (r *balanceRepository) GetBalance(userID uint) (*models.Balance, error) {
 	return &balance, nil
 }
 
-func (r *balanceRepository) UpdateBalance(userID uint, amount float64) error {
+func (r *balanceRepository) UpdateBalance(userID uint, amount float64) (*models.Balance, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -73,10 +73,10 @@ func (r *balanceRepository) UpdateBalance(userID uint, amount float64) error {
 		return tx.Save(&balance).Error
 	})
 
-	return err
+	return &balance, err
 }
 
-func (r *balanceRepository) IncrementBalance(userID uint, amount float64) error {
+func (r *balanceRepository) IncrementBalance(userID uint, amount float64) (*models.Balance, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -99,10 +99,10 @@ func (r *balanceRepository) IncrementBalance(userID uint, amount float64) error 
 		return tx.Save(&balance).Error
 	})
 
-	return err
+	return &balance, err
 }
 
-func (r *balanceRepository) DecrementBalance(userID uint, amount float64) error {
+func (r *balanceRepository) DecrementBalance(userID uint, amount float64) (*models.Balance, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -124,7 +124,7 @@ func (r *balanceRepository) DecrementBalance(userID uint, amount float64) error 
 		return tx.Save(&balance).Error
 	})
 
-	return err
+	return &balance, err
 }
 
 func (r *balanceRepository) CreateBalance(userID uint, amount float64) (*models.Balance, error) {

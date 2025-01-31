@@ -2,8 +2,10 @@ package services
 
 import (
 	"errors"
+	"go.uber.org/zap"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
+	"ptm/pkg/logger"
 	"ptm/pkg/utils/customError"
 	"time"
 )
@@ -19,12 +21,18 @@ type BalanceService interface {
 type balanceService struct {
 	repo              repositories.BalanceRepository
 	historyRepository repositories.BalanceHistoryRepository
+	logService        AuditLogService
 }
 
-func NewBalanceService(balanceRepository repositories.BalanceRepository, historyRepository repositories.BalanceHistoryRepository) BalanceService {
+func NewBalanceService(
+	balanceRepository repositories.BalanceRepository,
+	historyRepository repositories.BalanceHistoryRepository,
+	logService AuditLogService,
+) BalanceService {
 	return &balanceService{
 		repo:              balanceRepository,
 		historyRepository: historyRepository,
+		logService:        logService,
 	}
 }
 
@@ -38,7 +46,10 @@ func (s *balanceService) CreateBalance(user *models.User) (*models.Balance, erro
 	if createErr != nil {
 		return nil, customError.InternalServerError("Failed to create balance", createErr)
 	}
-
+	_, err = s.logService.CreateLog("balance", "create", balance.Id)
+	if err != nil {
+		logger.Logger.Error("Couldn't log the creation", zap.Error(err))
+	}
 	return balance, nil
 }
 
@@ -57,11 +68,17 @@ func (s *balanceService) UpdateUserBalance(userID uint, amount float64) error {
 	if amount < 0 {
 		return customError.BadRequest("Amount must be greater than zero")
 	}
-	if err := s.repo.UpdateBalance(userID, amount); err != nil {
+	balance, err := s.repo.UpdateBalance(userID, amount)
+	if err != nil {
 		return customError.InternalServerError("Failed to update balance", err)
 	}
 	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
 		return customError.InternalServerError("Failed to Create history for balance", err)
+	}
+
+	_, err = s.logService.CreateLog("balance", "create", balance.Id)
+	if err != nil {
+		logger.Logger.Error("Couldn't log the creation", zap.Error(err))
 	}
 
 	return nil
@@ -72,12 +89,20 @@ func (s *balanceService) IncrementUserBalance(userID uint, amount float64) error
 		return errors.New("increment amount must be greater than zero")
 	}
 
-	if err := s.repo.IncrementBalance(userID, amount); err != nil {
+	balance, err := s.repo.IncrementBalance(userID, amount)
+
+	if err != nil {
 		return customError.InternalServerError("Failed to increment balance", err)
 	}
 
 	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
 		return customError.InternalServerError("Failed to Create history for balance", err)
+	}
+
+	_, err = s.logService.CreateLog("balance", "update", balance.Id)
+
+	if err != nil {
+		logger.Logger.Error("Couldn't log the update", zap.Error(err))
 	}
 
 	return nil
@@ -87,12 +112,19 @@ func (s *balanceService) DecrementUserBalance(userID uint, amount float64) error
 		return customError.BadRequest("Amount must be greater than zero")
 	}
 
-	if err := s.repo.DecrementBalance(userID, amount); err != nil {
+	balance, err := s.repo.DecrementBalance(userID, amount)
+
+	if err != nil {
 		return customError.InternalServerError("Failed to Decrement balance", err)
 	}
 
 	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
 		return customError.InternalServerError("Failed to Create history for balance", err)
+	}
+
+	_, err = s.logService.CreateLog("balance", "create", balance.Id)
+	if err != nil {
+		logger.Logger.Error("Couldn't log the creation", zap.Error(err))
 	}
 
 	return nil
