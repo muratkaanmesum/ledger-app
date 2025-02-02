@@ -5,6 +5,7 @@ import (
 	"gorm.io/gorm"
 	"ptm/internal/db"
 	"ptm/internal/models"
+	"ptm/pkg/utils/customError"
 )
 
 type UserRepository interface {
@@ -52,7 +53,15 @@ func (r *userRepository) UpdateUser(user *models.User) error {
 }
 
 func (r *userRepository) DeleteUser(id uint) error {
-	return db.DB.Delete(&models.User{}, id).Error
+	query := db.DB.Delete(&models.User{}, id)
+
+	if query.Error != nil {
+		if errors.Is(query.Error, gorm.ErrRecordNotFound) {
+			return customError.NotFound("User Not found")
+		}
+	}
+
+	return nil
 }
 
 func (r *userRepository) GetUsers(page, count uint) ([]models.User, error) {

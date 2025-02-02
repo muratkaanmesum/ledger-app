@@ -1,6 +1,6 @@
 [build]
 bin = "main"
-cmd = "go build -o main ./cmd/ptm/main.go"
+cmd = "dlv debug ./cmd/ptm/main.go --headless --listen=:40000ç --api-version=2 --accept-multiclient"
 dir = "."
 exclude_dir = ["vendor"]
 include_ext = ["go"]
