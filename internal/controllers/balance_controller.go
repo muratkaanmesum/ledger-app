@@ -24,6 +24,7 @@ type BalanceRequest struct {
 
 func NewBalanceController() BalanceController {
 	service := di.Resolve[services.BalanceService]()
+
 	return &balanceController{
 		service: service,
 	}

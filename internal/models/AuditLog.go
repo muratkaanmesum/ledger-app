@@ -1,7 +1,7 @@
 package models
 
 import (
-	"errors"
+	"ptm/pkg/utils/customError"
 	"time"
 )
 
@@ -15,14 +15,14 @@ type AuditLog struct {
 }
 
 var validActions = map[string]bool{"create": true, "update": true, "delete": true}
-var validEntityTypes = map[string]bool{"user": true, "transaction": true}
+var validEntityTypes = map[string]bool{"user": true, "transaction": true, "balance": true}
 
 func NewAuditLog(entityType, action string, entityID uint, details string) (*AuditLog, error) {
 	if !validActions[action] {
-		return nil, errors.New("invalid action")
+		return nil, customError.BadRequest("Action is not valid")
 	}
 	if !validEntityTypes[entityType] {
-		return nil, errors.New("invalid entity type")
+		return nil, customError.BadRequest("Entity is not valid")
 	}
 
 	return &AuditLog{
