@@ -1,6 +1,7 @@
 package controllers
 
 import (
+	"fmt"
 	"github.com/labstack/echo/v4"
 	"ptm/internal/di"
 	"ptm/internal/services"
@@ -12,6 +13,7 @@ import (
 type BalanceController interface {
 	GetBalance(c echo.Context) error
 	BalanceAtTime(c echo.Context) error
+	GetHistoricalBalance(c echo.Context) error
 }
 
 type balanceController struct {
@@ -19,7 +21,7 @@ type balanceController struct {
 }
 
 type BalanceRequest struct {
-	Date time.Time `json:"date,omitempty"`
+	Date time.Time `json:"date" validate:"required"`
 }
 
 func NewBalanceController() BalanceController {
@@ -42,11 +44,11 @@ func (b *balanceController) GetBalance(c echo.Context) error {
 func (b *balanceController) BalanceAtTime(c echo.Context) error {
 	var request BalanceRequest
 	if err := c.Bind(&request); err != nil {
-		return response.InternalServerError(c, "Failed to bind request body", err)
+		return response.InternalServerError(c, "Failed to bind request body")
 	}
-
-	if err := c.Validate(request); err != nil {
-		return response.UnprocessableEntity(c, "Invalid request", err)
+	fmt.Println("Request", request)
+	if err := c.Validate(&request); err != nil {
+		return response.UnprocessableEntity(c, "Invalid request")
 	}
 
 	user := jwt.GetUser(c)
@@ -56,4 +58,16 @@ func (b *balanceController) BalanceAtTime(c echo.Context) error {
 	}
 
 	return response.Ok(c, "History Fetched Successfully", history)
+}
+
+func (b *balanceController) GetHistoricalBalance(c echo.Context) error {
+	user := jwt.GetUser(c)
+
+	histories, err := b.service.GetUserBalanceHistory(user.Id)
+
+	if err != nil {
+		return err
+	}
+
+	return response.Ok(c, "Balance History Fetched Successfully", histories)
 }

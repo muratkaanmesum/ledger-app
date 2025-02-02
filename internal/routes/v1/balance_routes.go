@@ -11,4 +11,6 @@ func RegisterBalanceRoutes(c *echo.Group) {
 	balanceGroup := c.Group("/balances")
 
 	balanceGroup.GET("/current", controller.GetBalance)
+	balanceGroup.POST("/at-time", controller.BalanceAtTime)
+	balanceGroup.GET("/historical", controller.GetHistoricalBalance)
 }

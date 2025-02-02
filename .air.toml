@@ -1,6 +1,6 @@
 [build]
 bin = "main"
-cmd = "dlv debug ./cmd/ptm/main.go --headless --listen=:40000ç --api-version=2 --accept-multiclient"
+cmd = "go build -gcflags 'all=-N -l' -o main ./cmd/ptm/main.go"
 dir = "."
 exclude_dir = ["vendor"]
 include_ext = ["go"]
@@ -10,6 +10,6 @@ exclude_ext = ["md"]
 level = "debug"
 
 [serve]
-cmd = "./main"
+cmd = "dlv --listen=:40000 --headless --api-version=2 --accept-multiclient exec ./main"
 gracefull = true
 bin_delay = 2000

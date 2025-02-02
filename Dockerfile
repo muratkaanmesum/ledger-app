@@ -12,14 +12,16 @@ COPY . .
 
 RUN GOOS=linux GOARCH=amd64 go build -o main ./cmd/ptm/main.go
 
+# ───────────────────────────────
+
 FROM golang:1.23 AS runtime
 
 RUN go install github.com/air-verse/air@v1.61.5
 
 WORKDIR /app
 
-COPY --from=builder /app/main ./main
-COPY --from=builder /app /app
+COPY --from=builder /app/main /app/main
+
 COPY --from=builder /go/bin/air /usr/local/bin/air
 COPY --from=builder /go/bin/dlv /usr/local/bin/dlv
 

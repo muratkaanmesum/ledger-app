@@ -17,6 +17,7 @@ type BalanceService interface {
 	DecrementUserBalance(userID uint, amount float64) error
 	CreateBalance(user *models.User) (*models.Balance, error)
 	GetBalanceAtTime(userID uint, time time.Time) (*models.BalanceHistory, error)
+	GetUserBalanceHistory(userID uint) ([]models.BalanceHistory, error)
 }
 type balanceService struct {
 	repo              repositories.BalanceRepository
@@ -72,7 +73,7 @@ func (s *balanceService) UpdateUserBalance(userID uint, amount float64) error {
 	if err != nil {
 		return customError.InternalServerError("Failed to update balance", err)
 	}
-	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
+	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, balance.Amount)); err != nil {
 		return customError.InternalServerError("Failed to Create history for balance", err)
 	}
 
@@ -95,7 +96,7 @@ func (s *balanceService) IncrementUserBalance(userID uint, amount float64) error
 		return customError.InternalServerError("Failed to increment balance", err)
 	}
 
-	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
+	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, balance.Amount)); err != nil {
 		return customError.InternalServerError("Failed to Create history for balance", err)
 	}
 
@@ -118,7 +119,7 @@ func (s *balanceService) DecrementUserBalance(userID uint, amount float64) error
 		return customError.InternalServerError("Failed to Decrement balance", err)
 	}
 
-	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, amount)); err != nil {
+	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, balance.Amount)); err != nil {
 		return customError.InternalServerError("Failed to Create history for balance", err)
 	}
 
@@ -137,4 +138,15 @@ func (s *balanceService) GetBalanceAtTime(userID uint, time time.Time) (*models.
 	}
 
 	return history, nil
+}
+
+func (s *balanceService) GetUserBalanceHistory(userID uint) ([]models.BalanceHistory, error) {
+
+	histories, err := s.historyRepository.GetUserHistories(userID)
+
+	if err != nil {
+		return nil, err
+	}
+
+	return histories, nil
 }

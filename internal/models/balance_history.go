@@ -12,7 +12,7 @@ type BalanceHistory struct {
 
 func NewBalanceHistory(userID uint, amount float64) *BalanceHistory {
 	changeType := ""
-	if amount <= 0 {
+	if amount > 0 {
 		changeType = "credit"
 	} else {
 		changeType = "debit"
