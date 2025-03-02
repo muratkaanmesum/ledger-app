@@ -4,3 +4,4 @@ tmp
 go.sum
 *debug*
 /main
+monitoring/grafana
