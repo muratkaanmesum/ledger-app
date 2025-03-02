@@ -11,6 +11,7 @@ import (
 	"ptm/internal/db/redis"
 	"ptm/internal/db/seeder"
 	"ptm/internal/di"
+	"ptm/internal/monitoring"
 	"ptm/internal/routes"
 	"ptm/pkg/counter"
 	"ptm/pkg/logger"
@@ -32,6 +33,7 @@ func main() {
 
 	db.InitDB()
 	redis.InitRedis()
+	monitoring.InitPrometheus()
 	di.InitDiContainer()
 	counter.InitStats()
 	worker.InitWorkerPool(10)

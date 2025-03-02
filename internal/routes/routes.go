@@ -3,6 +3,7 @@ package routes
 import (
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	"github.com/prometheus/client_golang/prometheus/promhttp"
 	"golang.org/x/time/rate"
 	"net/http"
 	"ptm/internal/db/seeder"
@@ -21,10 +22,17 @@ func InitRoutes(e *echo.Echo) {
 	e.Use(middlewares.ErrorMiddleware())
 	e.Use(middlewares.PerformanceMiddleware())
 
+	e.Use(func(next echo.HandlerFunc) echo.HandlerFunc {
+		return func(c echo.Context) error {
+
+			return next(c)
+		}
+	})
 	e.POST("/seeder", func(c echo.Context) error {
 		seeder.SeedUsers()
 		return response.Ok(c, "OK")
 	})
+	e.GET("/metrics", echo.WrapHandler(promhttp.Handler()))
 
 	v1.HandleV1Routes(e)
 }

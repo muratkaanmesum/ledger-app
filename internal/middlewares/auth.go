@@ -39,6 +39,7 @@ func JWTAuthenticate() echo.MiddlewareFunc {
 				"/api/v1/auth/login":    true,
 				"/api/v1/auth/register": true,
 				"/seeder":               true,
+				"/metrics":              true,
 			}
 
 			if publicRoutes[c.Path()] {
