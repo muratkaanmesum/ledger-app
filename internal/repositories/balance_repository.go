@@ -4,6 +4,7 @@ import (
 	"errors"
 	"ptm/internal/db"
 	"ptm/internal/models"
+	"ptm/pkg/utils/customError"
 	"sync"
 	"time"
 
@@ -44,7 +45,7 @@ func (r *balanceRepository) GetBalance(userID uint) (*models.Balance, error) {
 	query := db.DB.Where("user_id = ?", userID).First(&balance)
 
 	if query.Error != nil {
-		return nil, query.Error
+		return nil, customError.NotFound("Balance not found", query.Error)
 	}
 
 	return &balance, nil

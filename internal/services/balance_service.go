@@ -56,6 +56,7 @@ func (s *balanceService) CreateBalance(user *models.User) (*models.Balance, erro
 
 func (s *balanceService) GetUserBalance(userID uint) (*models.Balance, error) {
 	balance, err := s.repo.GetBalance(userID)
+
 	if err != nil {
 		return nil, err
 	}

@@ -52,10 +52,3 @@ func handleError(c echo.Context, customErr *customError.Error) error {
 		"details": customErr.Details,
 	})
 }
-
-func getErrorMessage(statusCode int) string {
-	if message, exists := errorMessages[statusCode]; exists {
-		return message
-	}
-	return "An unexpected error occurred."
-}
