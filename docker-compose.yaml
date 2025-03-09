@@ -19,12 +19,17 @@ services:
       REDIS_ADDR: ${DOCKER_REDIS_ADDR}
       REDIS_PASSWORD: ${REDIS_PASSWORD}
       REDIS_DB: ${REDIS_DB}
+      OTEL_EXPORTER_OTLP_ENDPOINT: http://telemetry:4317
+      OTEL_RESOURCE_ATTRIBUTES: service.name=ptm-app
+      OTEL_TRACES_SAMPLER: always_on
     volumes:
       - .:/app
     depends_on:
       db:
         condition: service_healthy
       redis:
+        condition: service_healthy
+      telemetry:
         condition: service_healthy
 
   db:
@@ -52,25 +57,35 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-  prometheus:
-    image: prom/prometheus:latest
-    container_name: ptm-prometheus
+
+  telemetry:
+    image: otel/opentelemetry-collector-contrib:latest
+    container_name: ptm-otel-collector
     volumes:
-      - ./configs/prometheus.yml:/etc/prometheus/prometheus.yml
+      - ./configs/telemetry.yaml:/etc/otel-collector-config.yaml
+    command: [ "--config=/etc/otel-collector-config.yaml" ]
     ports:
-      - "9090:9090"
-    command:
-      - "--config.file=/etc/prometheus/prometheus.yml"
+      - "4317:4317"
+      - "4318:4318"
     depends_on:
-      - app
-  grafana:
-    image: grafana/grafana:latest
-    container_name: ptm-grafana
+      jaeger:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "grpc_health_probe", "-addr=localhost:4317"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+
+  jaeger:
+    image: jaegertracing/all-in-one:latest
+    container_name: ptm-jaeger
     ports:
-      - "3000:3000"
-    volumes:
-      - ./monitoring/grafana:/var/lib/grafana
+      - "16686:16686"
+      - "4316:4317"
     environment:
-      - GF_SECURITY_ADMIN_PASSWORD=admin
-    depends_on:
-      - prometheus
+      COLLECTOR_OTLP_ENABLED: "true"
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:16686"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
