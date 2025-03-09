@@ -34,6 +34,11 @@ func main() {
 	db.InitDB()
 	redis.InitRedis()
 	monitoring.InitPrometheus()
+
+	_, err = monitoring.InitTracer()
+	if err != nil {
+		log.Fatalf("Failed to initialize tracing: %v", err)
+	}
 	di.InitDiContainer()
 	counter.InitStats()
 	worker.InitWorkerPool(10)

@@ -35,6 +35,7 @@ func NewBalanceController() BalanceController {
 func (b *balanceController) GetBalance(c echo.Context) error {
 	user := jwt.GetUser(c)
 	balance, err := b.service.GetUserBalance(user.Id)
+
 	if err != nil {
 		return err
 	}
