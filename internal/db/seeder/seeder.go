@@ -75,7 +75,7 @@ func createSpecificTransactions(users []models.User, transactionService services
 	}
 
 	for _, sender := range users {
-		senderID := uint(sender.ID)
+		senderID := sender.ID
 
 		depositAmount := float64(rand.Intn(500) + 50)
 		if _, err := transactionService.CreateTransaction(senderID, senderID, depositAmount, "deposit"); err != nil {
@@ -97,7 +97,7 @@ func createSpecificTransactions(users []models.User, transactionService services
 			log.Printf("No valid receiver found for send transaction from user %d", senderID)
 			continue
 		}
-		receiverID := uint(receiver.ID)
+		receiverID := receiver.ID
 
 		if _, err := transactionService.CreateTransaction(senderID, receiverID, -amount, models.Debit); err != nil {
 			log.Printf("Failed to create send transaction for user %d: %v", senderID, err)
