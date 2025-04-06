@@ -2,6 +2,7 @@ package redis
 
 import (
 	"context"
+	"errors"
 	"log"
 	"os"
 	"strconv"
@@ -44,10 +45,9 @@ func Set(key string, value string, expiration time.Duration) error {
 	return nil
 }
 
-// Get retrieves a value by key from Redis
 func Get(key string) (string, error) {
 	val, err := redisClient.Get(context.Background(), key).Result()
-	if err == redis.Nil {
+	if errors.Is(err, redis.Nil) {
 		log.Printf("Key %s does not exist in Redis", key)
 		return "", nil // Key does not exist
 	} else if err != nil {
@@ -57,7 +57,6 @@ func Get(key string) (string, error) {
 	return val, nil
 }
 
-// Delete removes a key from Redis
 func Delete(key string) error {
 	err := redisClient.Del(context.Background(), key).Err()
 	if err != nil {
@@ -67,7 +66,6 @@ func Delete(key string) error {
 	return nil
 }
 
-// Exists checks if a key exists in Redis
 func Exists(key string) (bool, error) {
 	val, err := redisClient.Exists(context.Background(), key).Result()
 	if err != nil {

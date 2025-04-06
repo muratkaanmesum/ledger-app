@@ -35,7 +35,7 @@ func main() {
 	redis.InitRedis()
 	monitoring.InitPrometheus()
 
-	_, err = monitoring.InitTracer()
+	//_, err = monitoring.InitTracer()
 	if err != nil {
 		log.Fatalf("Failed to initialize tracing: %v", err)
 	}
