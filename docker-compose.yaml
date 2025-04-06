@@ -29,8 +29,6 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-      telemetry:
-        condition: service_healthy
 
   db:
     image: postgres:15
@@ -57,35 +55,3 @@ services:
       interval: 5s
       timeout: 5s
       retries: 5
-
-  telemetry:
-    image: otel/opentelemetry-collector-contrib:latest
-    container_name: ptm-otel-collector
-    volumes:
-      - ./configs/telemetry.yaml:/etc/otel-collector-config.yaml
-    command: [ "--config=/etc/otel-collector-config.yaml" ]
-    ports:
-      - "4317:4317"
-      - "4318:4318"
-    depends_on:
-      jaeger:
-        condition: service_healthy
-    healthcheck:
-      test: ["CMD", "grpc_health_probe", "-addr=localhost:4317"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
-
-  jaeger:
-    image: jaegertracing/all-in-one:latest
-    container_name: ptm-jaeger
-    ports:
-      - "16686:16686"
-      - "4316:4317"
-    environment:
-      COLLECTOR_OTLP_ENABLED: "true"
-    healthcheck:
-      test: ["CMD", "wget", "--spider", "-q", "http://localhost:16686"]
-      interval: 10s
-      timeout: 5s
-      retries: 3
