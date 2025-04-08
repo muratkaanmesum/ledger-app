@@ -86,9 +86,16 @@ func (s *balanceService) UpdateUserBalance(userID uint, amount float64) error {
 		return customError.BadRequest("Amount must be greater than zero")
 	}
 	balance, err := s.repo.UpdateBalance(userID, amount)
+
 	if err != nil {
 		return customError.InternalServerError("Failed to update balance", err)
 	}
+
+	key := redis.Key("balance", userID)
+	if err := redis.Set(key, balance.Amount); err != nil {
+		return customError.InternalServerError("Failed to update balance", err)
+	}
+
 	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, balance.Amount)); err != nil {
 		return customError.InternalServerError("Failed to Create history for balance", err)
 	}
@@ -107,11 +114,14 @@ func (s *balanceService) IncrementUserBalance(userID uint, amount float64) error
 	}
 
 	balance, err := s.repo.IncrementBalance(userID, amount)
-	key := redis.Key("balance", userID)
 
-	redis.Set(key, fmt.Sprint(balance.Amount))
 	if err != nil {
 		return customError.InternalServerError("Failed to increment balance", err)
+	}
+
+	key := redis.Key("balance", userID)
+	if err := redis.Set(key, balance.Amount); err != nil {
+		return customError.InternalServerError("Failed to update balance", err)
 	}
 
 	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, balance.Amount)); err != nil {
@@ -135,6 +145,11 @@ func (s *balanceService) DecrementUserBalance(userID uint, amount float64) error
 
 	if err != nil {
 		return customError.InternalServerError("Failed to Decrement balance", err)
+	}
+
+	key := redis.Key("balance", userID)
+	if err := redis.Set(key, balance.Amount); err != nil {
+		return customError.InternalServerError("Failed to update balance", err)
 	}
 
 	if err := s.historyRepository.Create(models.NewBalanceHistory(userID, balance.Amount)); err != nil {
