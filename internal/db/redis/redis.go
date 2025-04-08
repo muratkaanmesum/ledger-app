@@ -3,9 +3,11 @@ package redis
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
 	"os"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/redis/go-redis/v9"
@@ -55,6 +57,14 @@ func Get(key string) (string, error) {
 		return "", err
 	}
 	return val, nil
+}
+
+func Key(parts ...any) string {
+	s := make([]string, len(parts))
+	for i, p := range parts {
+		s[i] = fmt.Sprint(p)
+	}
+	return strings.Join(s, ":")
 }
 
 func Delete(key string) error {

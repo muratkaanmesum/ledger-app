@@ -2,11 +2,14 @@ package services
 
 import (
 	"errors"
+	"fmt"
 	"go.uber.org/zap"
+	"ptm/internal/db/redis"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
 	"ptm/pkg/logger"
 	"ptm/pkg/utils/customError"
+	"strconv" // Added import
 	"time"
 )
 
@@ -55,15 +58,27 @@ func (s *balanceService) CreateBalance(user *models.User) (*models.Balance, erro
 }
 
 func (s *balanceService) GetUserBalance(userID uint) (*models.Balance, error) {
-	balance, err := s.repo.GetBalance(userID)
-
+	key := redis.Key("balance", userID)
+	exists, err := redis.Exists(key)
 	if err != nil {
-		return nil, err
+		return nil, customError.InternalServerError("Internal server error", err)
 	}
-	if balance == nil {
-		return nil, customError.NotFound("User not found")
+
+	if !exists {
+		logger.Logger.Info("Balance not exists on redis for", zap.String("user_id", fmt.Sprint(userID)))
+		balance, err := s.repo.GetBalance(userID)
+
+		if err != nil {
+			return nil, err
+		}
+		return balance, nil
 	}
-	return balance, nil
+
+	balance, err := redis.Get(key)
+	if err != nil {
+		return nil, customError.InternalServerError("Internal server error", err)
+	}
+	return models.NewBalance(userID, balance), nil // Updated line
 }
 
 func (s *balanceService) UpdateUserBalance(userID uint, amount float64) error {
@@ -150,4 +165,12 @@ func (s *balanceService) GetUserBalanceHistory(userID uint) ([]models.BalanceHis
 	}
 
 	return histories, nil
+}
+
+func parseAmount(amount string) float64 { // Added helper function
+	parsed, err := strconv.ParseFloat(amount, 64)
+	if err != nil {
+		return 0.0
+	}
+	return parsed
 }
