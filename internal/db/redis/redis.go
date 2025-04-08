@@ -38,8 +38,12 @@ func InitRedis() {
 	log.Println("Connected to Redis successfully!")
 }
 
-func Set(key string, value string, expiration time.Duration) error {
-	err := redisClient.Set(context.Background(), key, value, expiration).Err()
+func Set(key string, value any, expiration ...time.Duration) error {
+	var ttl time.Duration
+	if len(expiration) > 0 {
+		ttl = expiration[0]
+	}
+	err := redisClient.Set(context.Background(), key, fmt.Sprint(value), ttl).Err()
 	if err != nil {
 		log.Printf("Failed to set key %s in Redis: %v", key, err)
 		return err

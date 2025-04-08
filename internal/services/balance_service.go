@@ -107,7 +107,9 @@ func (s *balanceService) IncrementUserBalance(userID uint, amount float64) error
 	}
 
 	balance, err := s.repo.IncrementBalance(userID, amount)
+	key := redis.Key("balance", userID)
 
+	redis.Set(key, fmt.Sprint(balance.Amount))
 	if err != nil {
 		return customError.InternalServerError("Failed to increment balance", err)
 	}
