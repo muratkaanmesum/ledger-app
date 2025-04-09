@@ -16,7 +16,6 @@ import (
 	"ptm/pkg/counter"
 	"ptm/pkg/logger"
 	"ptm/pkg/validator"
-	"ptm/pkg/worker"
 )
 
 func main() {
@@ -42,7 +41,6 @@ func main() {
 	}
 	di.InitDiContainer()
 	counter.InitStats()
-	worker.InitWorkerPool(10)
 
 	e := echo.New()
 	e.Validator = validator.New()

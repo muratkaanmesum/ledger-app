@@ -32,7 +32,7 @@ type transactionController struct {
 }
 
 func NewTransactionController() TransactionController {
-	pool := worker.GetPool()
+	pool := worker.InitWorkerPool("Transaction", 10)
 
 	return &transactionController{
 		balanceService:     di.Resolve[services.BalanceService](),

@@ -12,13 +12,25 @@ type Pool struct {
 	waitGroup sync.WaitGroup
 }
 
-var instance *Pool
+var (
+	pools     = make(map[string]*Pool)
+	poolsLock sync.RWMutex
+)
 
-func GetPool() *Pool {
-	return instance
+func GetPool(key string) *Pool {
+	poolsLock.RLock()
+	defer poolsLock.RUnlock()
+	return pools[key]
 }
 
-func InitWorkerPool(workers int) {
+func InitWorkerPool(key string, workers int) *Pool {
+	poolsLock.Lock()
+	defer poolsLock.Unlock()
+
+	if existing, ok := pools[key]; ok {
+		return existing
+	}
+
 	workerPool := &Pool{
 		tasks:     make(chan Task, workers),
 		workers:   workers,
@@ -26,8 +38,9 @@ func InitWorkerPool(workers int) {
 	}
 
 	workerPool.startWorkers()
+	pools[key] = workerPool
 
-	instance = workerPool
+	return workerPool
 }
 
 func (wp *Pool) AddTask(task Task) {
