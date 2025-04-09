@@ -13,6 +13,7 @@ import (
 	"ptm/internal/di"
 	"ptm/internal/monitoring"
 	"ptm/internal/routes"
+	"ptm/internal/scheduler"
 	"ptm/pkg/counter"
 	"ptm/pkg/logger"
 	"ptm/pkg/validator"
@@ -35,6 +36,7 @@ func main() {
 	redis.WarmUpBalanceCache()
 	monitoring.InitPrometheus()
 
+	scheduler.InitScheduler()
 	if err != nil {
 		log.Fatalf("Failed to initialize tracing: %v", err)
 	}

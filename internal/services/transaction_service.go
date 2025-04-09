@@ -11,6 +11,12 @@ type TransactionService interface {
 	ListTransactions(userID uint, page, count uint, failed bool) ([]models.Transaction, error)
 	UpdateTransactionState(transactionId uint, state models.TransactionType) error
 	GetTransactionById(transactionId uint) (*models.Transaction, error)
+	ScheduleTransaction(
+		fromId,
+		toId uint,
+		amount float64,
+		transactionType models.TransactionType,
+		execTime time.Time) error
 }
 
 type transactionService struct {
