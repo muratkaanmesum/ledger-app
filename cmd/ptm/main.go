@@ -33,6 +33,7 @@ func main() {
 
 	db.InitDB()
 	redis.InitRedis()
+	redis.WarmUpBalanceCache()
 	monitoring.InitPrometheus()
 
 	//_, err = monitoring.InitTracer()
