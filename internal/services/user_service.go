@@ -2,7 +2,6 @@ package services
 
 import (
 	"errors"
-	"fmt"
 	"gorm.io/gorm"
 	"ptm/internal/dtos"
 	"ptm/internal/models"
@@ -87,7 +86,6 @@ func (s *userService) Exists(userId uint) (bool, error) {
 }
 
 func (s *userService) DeleteUser(userId uint) error {
-	fmt.Println("Delete User")
 	if err := s.userRepo.DeleteUser(userId); err != nil {
 		return err
 	}

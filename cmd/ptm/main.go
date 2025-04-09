@@ -35,7 +35,6 @@ func main() {
 	redis.WarmUpBalanceCache()
 	monitoring.InitPrometheus()
 
-	//_, err = monitoring.InitTracer()
 	if err != nil {
 		log.Fatalf("Failed to initialize tracing: %v", err)
 	}
