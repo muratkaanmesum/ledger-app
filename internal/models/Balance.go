@@ -13,11 +13,19 @@ type Balance struct {
 	User          User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 }
 
-func NewBalance(userID uint, amount string) *Balance {
+func NewBalanceFromString(userID uint, amount string) *Balance {
 	return &Balance{
 		Id:     0,
 		UserID: userID,
 		Amount: parseAmount(amount),
+	}
+}
+
+func NewBalanceFromFloat(userID uint, amount float64) *Balance {
+	return &Balance{
+		Id:     0,
+		UserID: userID,
+		Amount: amount,
 	}
 }
 

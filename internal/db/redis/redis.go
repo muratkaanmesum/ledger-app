@@ -133,3 +133,14 @@ func Exists(key string) (bool, error) {
 	}
 	return val > 0, nil
 }
+
+func AppendEventToStream(stream string, data map[string]interface{}) error {
+	return redisClient.XAdd(ctx, &redis.XAddArgs{
+		Stream: stream,
+		Values: data,
+	}).Err()
+}
+
+func ReadEventsFromStream(stream string) ([]redis.XMessage, error) {
+	return redisClient.XRange(ctx, stream, "-", "+").Result()
+}

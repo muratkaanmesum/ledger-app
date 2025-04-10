@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"go.uber.org/zap"
 	"ptm/internal/db/redis"
+	"ptm/internal/event"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
 	"ptm/pkg/logger"
@@ -66,19 +67,33 @@ func (s *balanceService) GetUserBalance(userID uint) (*models.Balance, error) {
 
 	if !exists {
 		logger.Logger.Info("Balance not exists on redis for", zap.String("user_id", fmt.Sprint(userID)))
-		balance, err := s.repo.GetBalance(userID)
 
+		events, err := event.RebuildState("balance_stream", fmt.Sprint(userID))
 		if err != nil {
-			return nil, err
+			return nil, customError.InternalServerError("Failed to rebuild state", err)
 		}
-		return balance, nil
+
+		var latestAmount float64
+		for _, e := range events {
+			if e.Type == "increment" {
+				latestAmount += parseAmount(e.Payload)
+			} else if e.Type == "decrement" {
+				latestAmount -= parseAmount(e.Payload)
+			}
+		}
+
+		if err := redis.Set(key, latestAmount); err != nil {
+			return nil, customError.InternalServerError("Failed to cache rebuilt balance", err)
+		}
+
+		return models.NewBalanceFromFloat(userID, latestAmount), nil
 	}
 
 	balance, err := redis.Get(key)
 	if err != nil {
 		return nil, customError.InternalServerError("Internal server error", err)
 	}
-	return models.NewBalance(userID, balance), nil // Updated line
+	return models.NewBalanceFromString(userID, balance), nil
 }
 
 func (s *balanceService) UpdateUserBalance(userID uint, amount float64) error {

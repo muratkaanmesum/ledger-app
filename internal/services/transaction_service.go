@@ -1,6 +1,9 @@
 package services
 
 import (
+	"fmt"
+	"github.com/google/uuid"
+	"ptm/internal/event"
 	"ptm/internal/models"
 	"ptm/internal/repositories"
 	"time"
@@ -37,6 +40,18 @@ func (t *transactionService) CreateTransaction(fromId, toId uint, amount float64
 	}
 
 	if err := t.repository.CreateTransaction(toTransaction); err != nil {
+		return nil, err
+	}
+
+	eventStruct := models.Event{
+		ID:        uuid.NewString(),
+		EntityID:  fmt.Sprintf("%d", toTransaction.ID),
+		Type:      "TransactionCreated",
+		Payload:   fmt.Sprintf(`{"from_id":%d,"to_id":%d,"amount":%.2f,"type":"%s"}`, fromId, toId, amount, transactionType),
+		Timestamp: time.Now(),
+	}
+	err = event.AppendEvent("transaction_events", eventStruct)
+	if err != nil {
 		return nil, err
 	}
 

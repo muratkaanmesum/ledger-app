@@ -32,16 +32,6 @@ func InitScheduler() {
 	log.Printf("Scheduler initialization took: %v", time.Since(start))
 }
 
-func AddSchedule(CronJob CronJob) {
-	c := cron.New()
-	for _, job := range CronJob {
-		schedule := job.Spec
-		if job.Time != "" {
-			schedule = job.Time
-		}
-		_, err := c.AddFunc(schedule, job.JobFunc)
-		if err != nil {
-			log.Printf("Failed to schedule job [%s]: %v", job.Spec, err)
-		}
-	}
+func AddSchedule(job CronJob) {
+	scheduledJobs = append(scheduledJobs, job)
 }
