@@ -19,6 +19,11 @@ type UserRepository interface {
 
 type userRepository struct{}
 
+func (r *userRepository) GetAllUsers() ([]models.User, error) {
+	//TODO implement me
+	panic("implement me")
+}
+
 func NewUserRepository() UserRepository {
 	return &userRepository{}
 }

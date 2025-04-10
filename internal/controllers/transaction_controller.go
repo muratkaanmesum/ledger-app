@@ -15,6 +15,7 @@ import (
 	"ptm/pkg/utils/response"
 	"ptm/pkg/worker"
 	"strconv"
+	"time"
 )
 
 type TransactionController interface {
@@ -32,7 +33,7 @@ type transactionController struct {
 }
 
 func NewTransactionController() TransactionController {
-	pool := worker.GetPool()
+	pool := worker.InitWorkerPool("Transaction", 10)
 
 	return &transactionController{
 		balanceService:     di.Resolve[services.BalanceService](),
@@ -49,6 +50,12 @@ type creditRequest struct {
 type TransferRequest struct {
 	Amount float64 `json:"amount" validate:"required"`
 	ToId   uint    `json:"to_id" validate:"required"`
+}
+
+type ScheduleRequest struct {
+	Amount float64 `json:"amount" validate:"required"`
+	ToId   uint    `json:"to_id" validate:"required"`
+	time   time.Time
 }
 
 func (tc *transactionController) HandleCredit(c echo.Context) error {
@@ -211,7 +218,7 @@ func (tc *transactionController) HandleTransfer(c echo.Context) error {
 	tc.pool.AddTask(func() {
 		db, err := transaction.StartTransaction()
 		if err != nil {
-			//return response.InternalServerError(c, "Error starting transaction", err)
+			logger.Logger.Error("error", zap.Error(err))
 		}
 
 		createdTransaction, err := tc.transactionService.CreateTransaction(
@@ -233,7 +240,7 @@ func (tc *transactionController) HandleTransfer(c echo.Context) error {
 		}
 
 		if err := tc.transactionService.UpdateTransactionState(user.Id, models.TransactionStatusCompleted); err != nil {
-
+			logger.Logger.Error("failed to update transaction status", zap.Error(err))
 		}
 
 		if err := transaction.CommitTransaction(db); err != nil {
@@ -258,4 +265,29 @@ func (tc *transactionController) GetById(c echo.Context) error {
 	}
 
 	return response.Ok(c, "Successful", returnedTransaction)
+}
+
+func (tc *transactionController) ScheduleTransaction(c echo.Context) error {
+	user := jwt.GetUser(c)
+	var req ScheduleRequest
+
+	if err := c.Bind(&req); err != nil {
+		return response.InternalServerError(c, "Error binding request", err)
+	}
+
+	if err := c.Validate(req); err != nil {
+		return response.UnprocessableEntity(c, "Validation error", err)
+	}
+
+	if err := tc.transactionService.ScheduleTransaction(
+		user.Id,
+		req.ToId,
+		req.Amount,
+		"credit",
+		req.time,
+	); err != nil {
+		return err
+	}
+
+	return response.Accepted(c, "Queued", nil)
 }

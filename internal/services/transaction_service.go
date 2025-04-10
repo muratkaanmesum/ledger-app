@@ -3,6 +3,7 @@ package services
 import (
 	"ptm/internal/models"
 	"ptm/internal/repositories"
+	"time"
 )
 
 type TransactionService interface {
@@ -10,10 +11,17 @@ type TransactionService interface {
 	ListTransactions(userID uint, page, count uint, failed bool) ([]models.Transaction, error)
 	UpdateTransactionState(transactionId uint, state models.TransactionType) error
 	GetTransactionById(transactionId uint) (*models.Transaction, error)
+	ScheduleTransaction(
+		fromId,
+		toId uint,
+		amount float64,
+		transactionType models.TransactionType,
+		execTime time.Time) error
 }
 
 type transactionService struct {
-	repository repositories.TransactionRepository
+	repository         repositories.TransactionRepository
+	scheduleRepository repositories.ScheduleRepository
 }
 
 func NewTransactionService(repository repositories.TransactionRepository) TransactionService {
@@ -68,4 +76,20 @@ func (t *transactionService) GetTransactionById(transactionId uint) (*models.Tra
 		return nil, err
 	}
 	return transaction, nil
+}
+
+func (t *transactionService) ScheduleTransaction(
+	fromId,
+	toId uint,
+	amount float64,
+	transactionType models.TransactionType,
+	execTime time.Time,
+) error {
+	return t.scheduleRepository.Create(&models.Schedule{
+		Amount:          amount,
+		UserID:          fromId,
+		TargetUserID:    toId,
+		ExecuteAt:       execTime,
+		TransactionType: transactionType,
+	})
 }

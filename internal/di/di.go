@@ -70,6 +70,10 @@ func registerRepositories(container *Container) {
 	if err := container.RegisterSingleton((*repositories.AuditLogRepository)(nil), auditRepository); err != nil {
 		panic(err)
 	}
+
+	if err := container.RegisterSingleton((*repositories.ScheduleRepository)(nil), auditRepository); err != nil {
+		panic(err)
+	}
 }
 
 func registerServices(container *Container) {

@@ -13,10 +13,10 @@ import (
 	"ptm/internal/di"
 	"ptm/internal/monitoring"
 	"ptm/internal/routes"
+	"ptm/internal/scheduler"
 	"ptm/pkg/counter"
 	"ptm/pkg/logger"
 	"ptm/pkg/validator"
-	"ptm/pkg/worker"
 )
 
 func main() {
@@ -33,15 +33,15 @@ func main() {
 
 	db.InitDB()
 	redis.InitRedis()
+	redis.WarmUpBalanceCache()
 	monitoring.InitPrometheus()
 
-	//_, err = monitoring.InitTracer()
+	scheduler.InitScheduler()
 	if err != nil {
 		log.Fatalf("Failed to initialize tracing: %v", err)
 	}
 	di.InitDiContainer()
 	counter.InitStats()
-	worker.InitWorkerPool(10)
 
 	e := echo.New()
 	e.Validator = validator.New()
