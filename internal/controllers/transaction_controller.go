@@ -212,6 +212,15 @@ func (tc *transactionController) HandleTransfer(c echo.Context) error {
 		return response.BadRequest(c, "User does not exist")
 	}
 
+	rules, err := tc.userService.GetUserRules(user.Id)
+	if err != nil {
+		return response.InternalServerError(c, "Error", err)
+	}
+
+	if rules.MaxAmountToTransfer < req.Amount {
+		return response.BadRequest(c, "Amount is too high", nil)
+	}
+
 	db, err := transaction.StartTransaction()
 	if err != nil {
 		logger.Logger.Error("error", zap.Error(err))

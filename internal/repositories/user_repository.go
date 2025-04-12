@@ -15,6 +15,7 @@ type UserRepository interface {
 	UpdateUser(user *models.User) error
 	DeleteUser(id uint) error
 	GetUsers(page, count uint) ([]models.User, error)
+	GetUserRules(userID uint) (models.Rule, error)
 }
 
 type userRepository struct{}
@@ -79,4 +80,10 @@ func (r *userRepository) GetUsers(page, count uint) ([]models.User, error) {
 	}
 
 	return users, nil
+}
+
+func (r *userRepository) GetUserRules(userID uint) (models.Rule, error) {
+	var rule models.Rule
+	err := db.DB.Where("user_id = ?", userID).First(&rule).Error
+	return rule, err
 }

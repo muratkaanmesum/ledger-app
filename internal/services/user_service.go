@@ -17,6 +17,7 @@ type UserService interface {
 	Exists(userId uint) (bool, error)
 	UpdateUser(id uint, user *dtos.UpdateUserRequest) (*models.User, error)
 	DeleteUser(userId uint) error
+	GetUserRules(userID uint) (models.Rule, error) // New method added
 }
 
 type userService struct {
@@ -112,4 +113,8 @@ func (s *userService) UpdateUser(id uint, user *dtos.UpdateUserRequest) (*models
 	}
 
 	return existingUser, nil
+}
+
+func (s *userService) GetUserRules(userID uint) (models.Rule, error) {
+	return s.userRepo.GetUserRules(userID)
 }
