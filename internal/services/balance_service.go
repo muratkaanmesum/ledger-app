@@ -17,8 +17,8 @@ import (
 type BalanceService interface {
 	GetUserBalance(userID uint) (*models.Balance, error)
 	UpdateUserBalance(userID uint, amount float64) error
-	IncrementUserBalance(userID uint, amount float64) error
-	DecrementUserBalance(userID uint, amount float64) error
+	IncrementUserBalance(userID uint, amount float64, currency string) error
+	DecrementUserBalance(userID uint, amount float64, currency string) error
 	CreateBalance(user *models.User) (*models.Balance, error)
 	GetBalanceAtTime(userID uint, time time.Time) (*models.BalanceHistory, error)
 	GetUserBalanceHistory(userID uint) ([]models.BalanceHistory, error)
@@ -123,12 +123,12 @@ func (s *balanceService) UpdateUserBalance(userID uint, amount float64) error {
 	return nil
 }
 
-func (s *balanceService) IncrementUserBalance(userID uint, amount float64) error {
+func (s *balanceService) IncrementUserBalance(userID uint, amount float64, currency string) error {
 	if amount <= 0 {
 		return errors.New("increment amount must be greater than zero")
 	}
 
-	balance, err := s.repo.IncrementBalance(userID, amount)
+	balance, err := s.repo.IncrementBalance(userID, amount, currency)
 
 	if err != nil {
 		return customError.InternalServerError("Failed to increment balance", err)
@@ -151,12 +151,12 @@ func (s *balanceService) IncrementUserBalance(userID uint, amount float64) error
 
 	return nil
 }
-func (s *balanceService) DecrementUserBalance(userID uint, amount float64) error {
+func (s *balanceService) DecrementUserBalance(userID uint, amount float64, currency string) error {
 	if amount <= 0 {
 		return customError.BadRequest("Amount must be greater than zero")
 	}
 
-	balance, err := s.repo.DecrementBalance(userID, amount)
+	balance, err := s.repo.DecrementBalance(userID, amount, currency)
 
 	if err != nil {
 		return customError.InternalServerError("Failed to Decrement balance", err)

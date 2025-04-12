@@ -1,6 +1,7 @@
 package worker
 
 import (
+	"github.com/labstack/echo/v4"
 	"sync"
 )
 
@@ -56,5 +57,27 @@ func (wp *Pool) startWorkers() {
 				task()
 			}
 		}(i)
+	}
+}
+
+func RunWithWorker[T any](handler func(c echo.Context) error, poolName string) echo.HandlerFunc {
+	return func(c echo.Context) error {
+		var body T
+		if err := c.Bind(&body); err != nil {
+			return c.JSON(400, map[string]string{"error": "Invalid request format"})
+		}
+
+		if err := c.Validate(body); err != nil {
+			return c.JSON(422, map[string]string{"error": "Validation failed"})
+		}
+
+		done := make(chan error)
+		wp := GetPool(poolName)
+
+		wp.AddTask(func() {
+			done <- handler(c)
+		})
+
+		return <-done
 	}
 }

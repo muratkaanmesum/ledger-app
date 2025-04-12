@@ -2,16 +2,16 @@ package redis
 
 import (
 	"context"
+	"encoding/json"
 	"errors"
 	"fmt"
 	"log"
 	"os"
-	"ptm/internal/repositories"
 	"strconv"
 	"strings"
-	"sync"
 	"time"
 
+	"github.com/go-resty/resty/v2"
 	"github.com/redis/go-redis/v9"
 )
 
@@ -38,49 +38,6 @@ func InitRedis() {
 	}
 
 	log.Println("Connected to Redis successfully!")
-}
-
-func WarmUpBalanceCache() {
-	userRepository := repositories.NewUserRepository()
-	balanceRepository := repositories.NewBalanceRepository()
-	page := uint(1)
-	pageSize := uint(100)
-	concurrency := 10
-	sem := make(chan struct{}, concurrency)
-	var wg sync.WaitGroup
-
-	for {
-		users, err := userRepository.GetUsers(page, pageSize)
-		if err != nil {
-			log.Printf("Failed to fetch users on page %d: %v", page, err)
-			break
-		}
-		if len(users) == 0 {
-			break
-		}
-
-		for _, user := range users {
-			wg.Add(1)
-			sem <- struct{}{}
-			go func(userID uint) {
-				defer wg.Done()
-				defer func() { <-sem }()
-				balance, err := balanceRepository.GetBalance(userID)
-				if err != nil {
-					log.Printf("Failed to fetch balance for user %d: %v", userID, err)
-					return
-				}
-				key := Key("balance", userID)
-				if err := Set(key, balance, 10*time.Minute); err != nil {
-					log.Printf("Failed to set balance for user %d: %v", userID, err)
-				}
-			}(user.ID)
-		}
-
-		page++
-	}
-
-	wg.Wait()
 }
 
 func Set(key string, value any, expiration ...time.Duration) error {
@@ -143,4 +100,59 @@ func AppendEventToStream(stream string, data map[string]interface{}) error {
 
 func ReadEventsFromStream(stream string) ([]redis.XMessage, error) {
 	return redisClient.XRange(ctx, stream, "-", "+").Result()
+}
+
+func SetJSON[T any](key string, value T, expiration time.Duration) error {
+	data, err := json.Marshal(value)
+	if err != nil {
+		return err
+	}
+	return redisClient.Set(context.Background(), key, data, expiration).Err()
+}
+
+func GetJSON[T any](key string) (T, error) {
+	var result T
+	val, err := redisClient.Get(context.Background(), key).Result()
+	if errors.Is(err, redis.Nil) {
+		return result, nil
+	}
+	if err != nil {
+		return result, err
+	}
+	err = json.Unmarshal([]byte(val), &result)
+	return result, err
+}
+
+func getConversionRate(defaultCurrency, targetCurrency string) (float64, error) {
+	type response struct {
+		Result          string             `json:"result"`
+		ConversionRates map[string]float64 `json:"conversion_rates"`
+	}
+
+	cacheKey := fmt.Sprintf("exchange_rate:%s:%s", defaultCurrency, targetCurrency)
+	cachedRate, err := GetJSON[float64](cacheKey)
+	if err == nil && cachedRate != 0 {
+		return cachedRate, nil
+	}
+
+	client := resty.New()
+	apiKey := os.Getenv("EXCHANGE_API_KEY")
+	apiURL := "https://v6.exchangerate-api.com/v6/" + apiKey + "/latest/" + defaultCurrency
+
+	resp, err := client.R().
+		SetResult(&response{}).
+		Get(apiURL)
+
+	if err != nil {
+		return 0, err
+	}
+
+	result := resp.Result().(*response)
+	rate, ok := result.ConversionRates[targetCurrency]
+	if !ok {
+		return 0, fmt.Errorf("conversion rate for %s not found", targetCurrency)
+	}
+
+	_ = SetJSON(cacheKey, rate, time.Hour)
+	return rate, nil
 }

@@ -9,6 +9,7 @@ type Balance struct {
 	Id            uint    `gorm:"primaryKey"`
 	UserID        uint    `gorm:"not null"`
 	Amount        float64 `gorm:"default:0.0"`
+	Currency      string  `gorm:"size:3;not null;default:TRY"`
 	LastUpdatedAt time.Time
 	User          User `gorm:"foreignKey:UserID;constraint:OnDelete:CASCADE" json:"-"`
 }

@@ -17,6 +17,7 @@ import (
 	"ptm/pkg/counter"
 	"ptm/pkg/logger"
 	"ptm/pkg/validator"
+	"ptm/pkg/warmup"
 )
 
 func main() {
@@ -33,7 +34,7 @@ func main() {
 
 	db.InitDB()
 	redis.InitRedis()
-	redis.WarmUpBalanceCache()
+	warmup.WarmUpBalanceCache()
 	monitoring.InitPrometheus()
 
 	scheduler.InitScheduler()

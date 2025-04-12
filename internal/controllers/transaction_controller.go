@@ -43,24 +43,27 @@ func NewTransactionController() TransactionController {
 	}
 }
 
-type creditRequest struct {
-	Amount float64 `json:"amount" validate:"required"`
+type CreditRequest struct {
+	Amount   float64 `json:"amount" validate:"required"`
+	Currency string  `json:"currency" validate:"required"`
 }
 
 type TransferRequest struct {
-	Amount float64 `json:"amount" validate:"required"`
-	ToId   uint    `json:"to_id" validate:"required"`
+	Amount   float64 `json:"amount" validate:"required"`
+	ToId     uint    `json:"to_id" validate:"required"`
+	Currency string  `json:"currency" validate:"required"`
 }
 
 type ScheduleRequest struct {
-	Amount float64 `json:"amount" validate:"required"`
-	ToId   uint    `json:"to_id" validate:"required"`
-	time   time.Time
+	Amount   float64 `json:"amount" validate:"required"`
+	ToId     uint    `json:"to_id" validate:"required"`
+	Currency string  `json:"currency" validate:"required"`
+	time     time.Time
 }
 
 func (tc *transactionController) HandleCredit(c echo.Context) error {
 	var (
-		req  creditRequest
+		req  CreditRequest
 		user = jwt.GetUser(c)
 	)
 
@@ -85,7 +88,7 @@ func (tc *transactionController) HandleCredit(c echo.Context) error {
 		}
 
 		defer tc.handleTransactionPanic(db, createdTransaction)
-		if err := tc.balanceService.IncrementUserBalance(user.Id, req.Amount); err != nil {
+		if err := tc.balanceService.IncrementUserBalance(user.Id, req.Amount, req.Currency); err != nil {
 
 		}
 
@@ -107,7 +110,7 @@ func (tc *transactionController) HandleCredit(c echo.Context) error {
 
 func (tc *transactionController) HandleDebit(c echo.Context) error {
 	var (
-		req  creditRequest
+		req  CreditRequest
 		user = jwt.GetUser(c)
 	)
 	if err := c.Bind(&req); err != nil {
@@ -118,33 +121,31 @@ func (tc *transactionController) HandleDebit(c echo.Context) error {
 		return response.BadRequest(c, "Validation error", err)
 	}
 
-	tc.pool.AddTask(func() {
-		db, err := transaction.StartTransaction()
-		if err != nil {
-			//return response.InternalServerError(c, "Error starting transaction", err)
-		}
-		createdTransaction, err := tc.transactionService.CreateTransaction(
-			user.Id, user.Id, req.Amount, models.Debit,
-		)
+	db, err := transaction.StartTransaction()
+	if err != nil {
+		//return response.InternalServerError(c, "Error starting transaction", err)
+	}
+	createdTransaction, err := tc.transactionService.CreateTransaction(
+		user.Id, user.Id, req.Amount, models.Debit,
+	)
 
-		defer tc.handleTransactionPanic(db, createdTransaction)
+	defer tc.handleTransactionPanic(db, createdTransaction)
 
-		if err := tc.balanceService.DecrementUserBalance(user.Id, req.Amount); err != nil {
-			logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
-		}
+	if err := tc.balanceService.DecrementUserBalance(user.Id, req.Amount, req.Currency); err != nil {
+		logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
+	}
 
-		if err != nil {
-			logger.Logger.Error("Error creating transaction", zap.Error(err))
-		}
+	if err != nil {
+		logger.Logger.Error("Error creating transaction", zap.Error(err))
+	}
 
-		if err := tc.transactionService.UpdateTransactionState(user.Id, models.TransactionStatusCompleted); err != nil {
+	if err := tc.transactionService.UpdateTransactionState(user.Id, models.TransactionStatusCompleted); err != nil {
 
-		}
+	}
 
-		if err := transaction.CommitTransaction(db); err != nil {
-			logger.Logger.Error("Error when committing the transaction")
-		}
-	})
+	if err := transaction.CommitTransaction(db); err != nil {
+		logger.Logger.Error("Error when committing the transaction")
+	}
 
 	return response.Accepted(c, "Transaction Accepted")
 }
@@ -156,10 +157,6 @@ func (tc *transactionController) GetTransactions(c echo.Context) error {
 	)
 	if err := c.Bind(&req); err != nil {
 		return response.InternalServerError(c, "Error binding request", err)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return response.UnprocessableEntity(c, "Validation error", err)
 	}
 
 	failedParam := c.QueryParam("failed")
@@ -215,38 +212,36 @@ func (tc *transactionController) HandleTransfer(c echo.Context) error {
 		return response.BadRequest(c, "User does not exist")
 	}
 
-	tc.pool.AddTask(func() {
-		db, err := transaction.StartTransaction()
-		if err != nil {
-			logger.Logger.Error("error", zap.Error(err))
-		}
+	db, err := transaction.StartTransaction()
+	if err != nil {
+		logger.Logger.Error("error", zap.Error(err))
+	}
 
-		createdTransaction, err := tc.transactionService.CreateTransaction(
-			user.Id, req.ToId, req.Amount, models.Transfer,
-		)
+	createdTransaction, err := tc.transactionService.CreateTransaction(
+		user.Id, req.ToId, req.Amount, models.Transfer,
+	)
 
-		defer tc.handleTransactionPanic(db, createdTransaction)
+	defer tc.handleTransactionPanic(db, createdTransaction)
 
-		if err := tc.balanceService.DecrementUserBalance(user.Id, req.Amount); err != nil {
-			logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
-		}
+	if err := tc.balanceService.DecrementUserBalance(user.Id, req.Amount, req.Currency); err != nil {
+		logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
+	}
 
-		if err := tc.balanceService.IncrementUserBalance(req.ToId, req.Amount); err != nil {
-			logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
-		}
+	if err := tc.balanceService.IncrementUserBalance(req.ToId, req.Amount, req.Currency); err != nil {
+		logger.Logger.Error("Panic occurred during transaction, rolling back", zap.Any("panic", err))
+	}
 
-		if err != nil {
-			logger.Logger.Error("Error creating transaction", zap.Error(err))
-		}
+	if err != nil {
+		logger.Logger.Error("Error creating transaction", zap.Error(err))
+	}
 
-		if err := tc.transactionService.UpdateTransactionState(user.Id, models.TransactionStatusCompleted); err != nil {
-			logger.Logger.Error("failed to update transaction status", zap.Error(err))
-		}
+	if err := tc.transactionService.UpdateTransactionState(user.Id, models.TransactionStatusCompleted); err != nil {
+		logger.Logger.Error("failed to update transaction status", zap.Error(err))
+	}
 
-		if err := transaction.CommitTransaction(db); err != nil {
-			logger.Logger.Error("Error when committing the transaction")
-		}
-	})
+	if err := transaction.CommitTransaction(db); err != nil {
+		logger.Logger.Error("Error when committing the transaction")
+	}
 
 	return response.Accepted(c, "Transaction Accepted")
 }

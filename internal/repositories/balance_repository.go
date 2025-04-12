@@ -4,6 +4,7 @@ import (
 	"errors"
 	"ptm/internal/db"
 	"ptm/internal/models"
+	"ptm/pkg/exchange"
 	"ptm/pkg/utils/customError"
 	"sync"
 	"time"
@@ -19,8 +20,8 @@ var (
 type BalanceRepository interface {
 	GetBalance(userID uint) (*models.Balance, error)
 	UpdateBalance(userID uint, amount float64) (*models.Balance, error)
-	IncrementBalance(userID uint, amount float64) (*models.Balance, error)
-	DecrementBalance(userID uint, amount float64) (*models.Balance, error)
+	IncrementBalance(userID uint, amount float64, currency string) (*models.Balance, error)
+	DecrementBalance(userID uint, amount float64, currency string) (*models.Balance, error)
 	CreateBalance(userID uint, amount float64) (*models.Balance, error)
 }
 
@@ -69,7 +70,6 @@ func (r *balanceRepository) UpdateBalance(userID uint, amount float64) (*models.
 			return err
 		}
 
-		balance.Amount = amount
 		balance.LastUpdatedAt = time.Now()
 		return tx.Save(&balance).Error
 	})
@@ -77,7 +77,7 @@ func (r *balanceRepository) UpdateBalance(userID uint, amount float64) (*models.
 	return &balance, err
 }
 
-func (r *balanceRepository) IncrementBalance(userID uint, amount float64) (*models.Balance, error) {
+func (r *balanceRepository) IncrementBalance(userID uint, amount float64, currency string) (*models.Balance, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -94,8 +94,13 @@ func (r *balanceRepository) IncrementBalance(userID uint, amount float64) (*mode
 			}
 			return err
 		}
+		rate, err := exchange.GetConversionRate(balance.Currency, currency)
 
-		balance.Amount += amount
+		if err != nil {
+			return err
+		}
+
+		balance.Amount += amount * rate
 		balance.LastUpdatedAt = time.Now()
 		return tx.Save(&balance).Error
 	})
@@ -103,7 +108,7 @@ func (r *balanceRepository) IncrementBalance(userID uint, amount float64) (*mode
 	return &balance, err
 }
 
-func (r *balanceRepository) DecrementBalance(userID uint, amount float64) (*models.Balance, error) {
+func (r *balanceRepository) DecrementBalance(userID uint, amount float64, currency string) (*models.Balance, error) {
 	r.mu.Lock()
 	defer r.mu.Unlock()
 
@@ -120,7 +125,12 @@ func (r *balanceRepository) DecrementBalance(userID uint, amount float64) (*mode
 			return errors.New("insufficient balance")
 		}
 
-		balance.Amount -= amount
+		rate, err := exchange.GetConversionRate(balance.Currency, currency)
+
+		if err != nil {
+			return err
+		}
+		balance.Amount -= amount * rate
 		balance.LastUpdatedAt = time.Now()
 		return tx.Save(&balance).Error
 	})
