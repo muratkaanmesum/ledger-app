@@ -5,15 +5,12 @@ BUILD_DIR := ./tmp
 BUILD_FILE := $(BUILD_DIR)/$(APP_NAME)
 DOCKER_COMPOSE := docker-compose
 
-# Environment variables
 ENV_FILE := .env
 DB_CONTAINER := ptm-postgres
 REDIS_CONTAINER := ptm-redis
 
-# Default target
 .DEFAULT_GOAL := help
 
-# Build the application
 .PHONY: build
 build: ## Build the Go application
 	@mkdir -p $(BUILD_DIR)
@@ -31,11 +28,11 @@ clean: ## Remove build artifacts
 	@echo "Cleaned build artifacts"
 
 .PHONY: docker-up
-docker-up:
+docker-up: ## build with docker
 	$(DOCKER_COMPOSE) up --build
 
 .PHONY: docker-down
-docker-down:
+docker-down: ## stop docker
 	$(DOCKER_COMPOSE) down --volumes --remove-orphans
 
 .PHONY: docker-rebuild

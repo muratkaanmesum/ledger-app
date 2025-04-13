@@ -5,3 +5,6 @@ go.sum
 *debug*
 /main
 monitoring/grafana
+postgres-data
+postgres-replica
+
