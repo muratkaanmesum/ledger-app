@@ -13,8 +13,10 @@ import (
 
 	"github.com/go-resty/resty/v2"
 	"github.com/redis/go-redis/v9"
+	"github.com/sony/gobreaker"
 )
 
+var redisBreaker *gobreaker.CircuitBreaker
 var redisClient *redis.Client
 var ctx = context.Background()
 
@@ -38,6 +40,16 @@ func InitRedis() {
 	}
 
 	log.Println("Connected to Redis successfully!")
+
+	redisBreaker = gobreaker.NewCircuitBreaker(gobreaker.Settings{
+		Name:        "RedisBreaker",
+		MaxRequests: 3,
+		Interval:    30 * time.Second,
+		Timeout:     10 * time.Second,
+		ReadyToTrip: func(counts gobreaker.Counts) bool {
+			return counts.ConsecutiveFailures > 5
+		},
+	})
 }
 
 func Set(key string, value any, expiration ...time.Duration) error {
@@ -54,12 +66,15 @@ func Set(key string, value any, expiration ...time.Duration) error {
 }
 
 func Get(key string) (string, error) {
-	val, err := redisClient.Get(context.Background(), key).Result()
-	if errors.Is(err, redis.Nil) {
-		log.Printf("Key %s does not exist in Redis", key)
-		return "", nil
-	} else if err != nil {
-		log.Printf("Failed to get key %s from Redis: %v", key, err)
+	result, err := redisBreaker.Execute(func() (interface{}, error) {
+		return redisClient.Get(context.Background(), key).Result()
+	})
+	val := ""
+	if result != nil {
+		val = result.(string)
+	}
+	if err != nil {
+		log.Printf("Redis fallback: failed to get key '%s': %v", key, err)
 		return "", err
 	}
 	return val, nil
