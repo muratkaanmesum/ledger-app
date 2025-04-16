@@ -60,7 +60,7 @@ func (wp *Pool) startWorkers() {
 	}
 }
 
-func RunWithWorker[T any](handler func(c echo.Context) error, poolName string) echo.HandlerFunc {
+func RunWithWorker[T any](handler func(c echo.Context, body T) error, poolName string) echo.HandlerFunc {
 	return func(c echo.Context) error {
 		var body T
 		if err := c.Bind(&body); err != nil {
@@ -75,7 +75,7 @@ func RunWithWorker[T any](handler func(c echo.Context) error, poolName string) e
 		wp := GetPool(poolName)
 
 		wp.AddTask(func() {
-			done <- handler(c)
+			done <- handler(c, body)
 		})
 
 		return <-done

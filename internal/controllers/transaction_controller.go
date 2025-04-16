@@ -19,10 +19,12 @@ import (
 )
 
 type TransactionController interface {
-	HandleCredit(c echo.Context) error
-	HandleDebit(c echo.Context) error
+	HandleCredit(c echo.Context, req CreditRequest) error
+	HandleDebit(c echo.Context, req CreditRequest) error
+	HandleTransfer(c echo.Context, req TransferRequest) error
+	ScheduleTransaction(c echo.Context, req ScheduleRequest) error
 	GetTransactions(c echo.Context) error
-	HandleTransfer(c echo.Context) error
+	GetById(c echo.Context) error
 }
 
 type transactionController struct {
@@ -61,69 +63,50 @@ type ScheduleRequest struct {
 	time     time.Time
 }
 
-func (tc *transactionController) HandleCredit(c echo.Context) error {
+func (tc *transactionController) HandleCredit(c echo.Context, req CreditRequest) error {
 	var (
-		req  CreditRequest
 		user = jwt.GetUser(c)
 	)
 
-	if err := c.Bind(&req); err != nil {
-		return response.InternalServerError(c, "Error binding request", err)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return response.UnprocessableEntity(c, "Validation error", err)
-	}
-
-	tc.pool.AddTask(func() {
-		createdTransaction, err := tc.transactionService.CreateTransaction(
-			user.Id, user.Id, req.Amount, models.Credit,
-		)
-		if err != nil {
-		}
-
-		db, err := transaction.StartTransaction()
-		if err != nil {
-			//return customError.New(customError.InternalServerError, err)
-		}
-
-		defer tc.handleTransactionPanic(db, createdTransaction)
-		if err := tc.balanceService.IncrementUserBalance(user.Id, req.Amount, req.Currency); err != nil {
-
-		}
-
-		if err != nil {
-			logger.Logger.Error("failed to update transaction status", zap.Error(err))
-		}
-
-		if err := tc.transactionService.UpdateTransactionState(createdTransaction.ID, models.TransactionStatusCompleted); err != nil {
-			logger.Logger.Error("failed to update transaction status", zap.Error(err))
-		}
-
-		if err := transaction.CommitTransaction(db); err != nil {
-			logger.Logger.Error("failed to commit transaction", zap.Error(err))
-		}
-	})
-
-	return response.Accepted(c, "Transaction Accepted")
-}
-
-func (tc *transactionController) HandleDebit(c echo.Context) error {
-	var (
-		req  CreditRequest
-		user = jwt.GetUser(c)
+	createdTransaction, err := tc.transactionService.CreateTransaction(
+		user.Id, user.Id, req.Amount, models.Credit,
 	)
-	if err := c.Bind(&req); err != nil {
-		return response.InternalServerError(c, "Error binding request", err)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return response.BadRequest(c, "Validation error", err)
+	if err != nil {
 	}
 
 	db, err := transaction.StartTransaction()
 	if err != nil {
-		//return response.InternalServerError(c, "Error starting transaction", err)
+		logger.Logger.Error("failed to increment user balance", zap.Error(err))
+	}
+
+	defer tc.handleTransactionPanic(db, createdTransaction)
+	if err := tc.balanceService.IncrementUserBalance(user.Id, req.Amount, req.Currency); err != nil {
+		logger.Logger.Error("failed to increment user balance", zap.Error(err))
+	}
+
+	if err != nil {
+		logger.Logger.Error("failed to update transaction status", zap.Error(err))
+	}
+
+	if err := tc.transactionService.UpdateTransactionState(createdTransaction.ID, models.TransactionStatusCompleted); err != nil {
+		logger.Logger.Error("failed to update transaction status", zap.Error(err))
+	}
+
+	if err := transaction.CommitTransaction(db); err != nil {
+		logger.Logger.Error("failed to commit transaction", zap.Error(err))
+	}
+
+	return response.Accepted(c, "Transaction Accepted")
+}
+
+func (tc *transactionController) HandleDebit(c echo.Context, req CreditRequest) error {
+	var (
+		user = jwt.GetUser(c)
+	)
+
+	db, err := transaction.StartTransaction()
+	if err != nil {
+		logger.Logger.Error("failed to increment user balance", zap.Error(err))
 	}
 	createdTransaction, err := tc.transactionService.CreateTransaction(
 		user.Id, user.Id, req.Amount, models.Debit,
@@ -140,7 +123,7 @@ func (tc *transactionController) HandleDebit(c echo.Context) error {
 	}
 
 	if err := tc.transactionService.UpdateTransactionState(user.Id, models.TransactionStatusCompleted); err != nil {
-
+		logger.Logger.Error("Error creating transaction", zap.Error(err))
 	}
 
 	if err := transaction.CommitTransaction(db); err != nil {
@@ -190,18 +173,8 @@ func (tc *transactionController) handleTransactionPanic(db *gorm.DB, createdTran
 	}
 }
 
-func (tc *transactionController) HandleTransfer(c echo.Context) error {
+func (tc *transactionController) HandleTransfer(c echo.Context, req TransferRequest) error {
 	user := jwt.GetUser(c)
-	var req TransferRequest
-
-	if err := c.Bind(&req); err != nil {
-		return response.InternalServerError(c, "Error binding request", err)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return response.UnprocessableEntity(c, "Validation error", err)
-	}
-
 	exists, err := tc.userService.Exists(user.Id)
 
 	if err != nil {
@@ -271,9 +244,8 @@ func (tc *transactionController) GetById(c echo.Context) error {
 	return response.Ok(c, "Successful", returnedTransaction)
 }
 
-func (tc *transactionController) ScheduleTransaction(c echo.Context) error {
+func (tc *transactionController) ScheduleTransaction(c echo.Context, req ScheduleRequest) error {
 	user := jwt.GetUser(c)
-	var req ScheduleRequest
 
 	if err := c.Bind(&req); err != nil {
 		return response.InternalServerError(c, "Error binding request", err)

@@ -9,10 +9,13 @@ import (
 func RegisterTransactionRoutes(c *echo.Group) {
 	controller := controllers.NewTransactionController()
 	group := c.Group("/transactions")
+	poolName := "transactions"
 
-	group.POST("/history", worker.RunWithWorker[controllers.CreditRequest](controller.GetTransactions, "transactions"))
-	group.POST("/credit", controller.HandleCredit)
-	group.POST("/debit", controller.HandleDebit)
-	group.POST("/transfer", controller.HandleTransfer)
-	group.POST("/:id", controller.HandleTransfer)
+	group.POST("/history", controller.GetTransactions)
+	group.POST("/credit", worker.RunWithWorker[controllers.CreditRequest](controller.HandleCredit, poolName))
+	group.POST("/debit", worker.RunWithWorker[controllers.CreditRequest](controller.HandleDebit, poolName))
+	group.POST("/transfer", worker.RunWithWorker[controllers.TransferRequest](controller.HandleTransfer, poolName))
+	group.POST("/schedule", worker.RunWithWorker[controllers.ScheduleRequest](controller.ScheduleTransaction, poolName))
+	group.POST("/:id", controller.GetById)
+
 }
