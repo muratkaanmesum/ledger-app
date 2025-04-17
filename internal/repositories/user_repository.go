@@ -47,7 +47,7 @@ func (r *userRepository) GetUserByUsername(username string) (*models.User, error
 	err := db.DB.Where("username = ?", username).First(&user).Error
 	if err != nil {
 		if errors.Is(err, gorm.ErrRecordNotFound) {
-			return nil, nil
+			return nil, customError.NotFound("User not found")
 		}
 		return nil, err
 	}

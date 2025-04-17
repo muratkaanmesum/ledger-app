@@ -87,6 +87,7 @@ func (ac *authController) AuthenticateUser(c echo.Context) error {
 	}
 
 	user, err := ac.userService.GetUserByUsername(req.Username)
+
 	if err != nil {
 		return err
 	}

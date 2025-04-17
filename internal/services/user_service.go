@@ -70,7 +70,7 @@ func (s *userService) GetUserById(id uint) (*models.User, error) {
 func (s *userService) GetUserByUsername(username string) (*models.User, error) {
 	user, err := s.userRepo.GetUserByUsername(username)
 	if err != nil {
-		return nil, customError.NotFound("User not found")
+		return nil, err
 	}
 	return user, nil
 }

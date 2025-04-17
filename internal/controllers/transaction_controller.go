@@ -247,14 +247,6 @@ func (tc *transactionController) GetById(c echo.Context) error {
 func (tc *transactionController) ScheduleTransaction(c echo.Context, req ScheduleRequest) error {
 	user := jwt.GetUser(c)
 
-	if err := c.Bind(&req); err != nil {
-		return response.InternalServerError(c, "Error binding request", err)
-	}
-
-	if err := c.Validate(req); err != nil {
-		return response.UnprocessableEntity(c, "Validation error", err)
-	}
-
 	if err := tc.transactionService.ScheduleTransaction(
 		user.Id,
 		req.ToId,
