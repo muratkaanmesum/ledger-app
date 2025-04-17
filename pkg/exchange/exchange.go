@@ -29,23 +29,22 @@ func GetConversionRate(defaultCurrency, targetCurrency string) (float64, error) 
 	client := resty.New()
 	apiKey := os.Getenv("EXCHANGE_API_KEY")
 	apiURL := "https://v6.exchangerate-api.com/v6/" + apiKey + "/latest/" + defaultCurrency
-
-	resp, err := client.R().
-		SetResult(&response{}).
+	var resp = response{}
+	_, err = client.R().
+		SetResult(&resp).
 		Get(apiURL)
 
 	if err != nil {
 		return 0, err
 	}
 
-	result := resp.Result().(*response)
-	if result.ConversionRates == nil {
+	if resp.ConversionRates == nil {
 		return 0, fmt.Errorf("no conversion rates available")
 	}
 
-	_ = redis.SetJSON(cacheKey, result, time.Hour)
+	_ = redis.SetJSON(cacheKey, resp, time.Hour)
 
-	rate, ok := result.ConversionRates[targetCurrency]
+	rate, ok := resp.ConversionRates[targetCurrency]
 	if !ok {
 		return 0, fmt.Errorf("conversion rate for %s not found", targetCurrency)
 	}
