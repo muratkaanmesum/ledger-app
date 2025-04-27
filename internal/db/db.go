@@ -32,3 +32,19 @@ func InitDB() {
 
 	log.Println("Database connected and migrated successfully!")
 }
+
+func CloseDB() {
+	if DB != nil {
+		sqlDB, err := DB.DB()
+		if err != nil {
+			log.Printf("Error getting underlying SQL DB: %v", err)
+			return
+		}
+		
+		if err := sqlDB.Close(); err != nil {
+			log.Printf("Error closing database connection: %v", err)
+		} else {
+			log.Println("Database connection closed successfully")
+		}
+	}
+}

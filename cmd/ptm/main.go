@@ -1,11 +1,13 @@
 package main
 
 import (
+	"context"
 	"fmt"
 	"github.com/joho/godotenv"
 	"github.com/labstack/echo/v4"
 	"log"
 	"os"
+	"os/signal"
 	"ptm/configs"
 	"ptm/internal/db"
 	"ptm/internal/db/redis"
@@ -18,6 +20,8 @@ import (
 	"ptm/pkg/logger"
 	"ptm/pkg/validator"
 	"ptm/pkg/warmup"
+	"syscall"
+	"time"
 )
 
 func main() {
@@ -51,5 +55,34 @@ func main() {
 		seeder.SeedUsers()
 	}
 	routes.InitRoutes(e)
-	e.Logger.Fatal(e.Start(":8080"))
+	
+	go func() {
+		if err := e.Start(":8080"); err != nil {
+			log.Printf("Server shutting down: %v", err)
+		}
+	}()
+
+	quit := make(chan os.Signal, 1)
+	signal.Notify(quit, syscall.SIGINT, syscall.SIGTERM)
+	<-quit
+	
+	log.Println("Shutting down server...")
+	
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	
+	if err := e.Shutdown(ctx); err != nil {
+		log.Printf("Server forced to shutdown: %v", err)
+	}
+	
+	log.Println("Closing database connections...")
+	db.CloseDB()
+	
+	log.Println("Closing Redis connections...")
+	redis.CloseRedis()
+	
+	log.Println("Stopping scheduler...")
+	scheduler.StopScheduler()
+	
+	log.Println("Server gracefully stopped")
 }

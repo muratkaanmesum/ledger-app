@@ -52,6 +52,16 @@ func InitRedis() {
 	})
 }
 
+func CloseRedis() {
+	if redisClient != nil {
+		if err := redisClient.Close(); err != nil {
+			log.Printf("Error closing Redis connection: %v", err)
+		} else {
+			log.Println("Redis connection closed successfully")
+		}
+	}
+}
+
 func Set(key string, value any, expiration ...time.Duration) error {
 	var ttl time.Duration
 	if len(expiration) > 0 {
